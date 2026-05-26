@@ -1,8 +1,8 @@
-"use client";
+ "use client";
 
-import { useEffect, useState, use } from "react";
+import { useEffect, useState, use, Suspense } from "react";
 import { Container, Button, Group, Alert } from "@mantine/core";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useQuiz } from "@/hooks/use-quiz";
 import { LoadingState } from "@/components/ui/LoadingState";
 import { ErrorAlert } from "@/components/ui/ErrorAlert";
@@ -10,18 +10,20 @@ import { QuestionCard } from "@/components/features/quiz/QuestionCard";
 import { QuizProgress } from "@/components/features/quiz/QuizProgress";
 import { QuizResultView } from "@/components/features/quiz/QuizResult";
 
-export default function QuizPage({
-  params,
+function QuizContent({
+  category,
+  date,
 }: {
-  params: Promise<{ category: string }>;
+  category: string;
+  date: string | undefined;
 }) {
-  const { category } = use(params);
   const router = useRouter();
-  const { questions, loading, submitting, error, result, fetchQuestions, submit } =
-    useQuiz(category);
+  const { questions, loading, submitting, error, result, fetchQuestions, submit, retake: retakeQuiz } =
+    useQuiz(category, date);
   const [currentIdx, setCurrentIdx] = useState(0);
   const [selected, setSelected] = useState<Record<string, number>>({});
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [isRetake, setIsRetake] = useState(false);
 
   useEffect(() => {
     const load = async () => {
@@ -60,6 +62,11 @@ export default function QuizPage({
         answers={result.answers}
         questions={questions}
         onBackHome={() => router.push("/")}
+        onRetake={() => {
+          setIsRetake(true);
+          setSelected({});
+          retakeQuiz();
+        }}
       />
     );
   }
@@ -73,7 +80,7 @@ export default function QuizPage({
       questionId,
       selectedIndex,
     }));
-    await submit(questions[0]?.date ?? "", answers);
+    await submit(questions[0]?.date ?? "", answers, isRetake);
   }
 
   return (
@@ -117,5 +124,21 @@ export default function QuizPage({
         )}
       </Group>
     </Container>
+  );
+}
+
+export default function QuizPage({
+  params,
+}: {
+  params: Promise<{ category: string }>;
+}) {
+  const { category } = use(params);
+  const searchParams = useSearchParams();
+  const date = searchParams.get("date") ?? undefined;
+
+  return (
+    <Suspense fallback={<LoadingState message="Loading quiz..." />}>
+      <QuizContent category={category} date={date} />
+    </Suspense>
   );
 }

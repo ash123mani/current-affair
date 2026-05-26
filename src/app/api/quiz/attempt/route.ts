@@ -54,13 +54,14 @@ export async function POST(request: Request) {
       return err(new ValidationError(parsed.error.issues[0].message));
     }
 
-    const { category, date, answers } = parsed.data;
+    const { category, date, answers, retake } = parsed.data;
 
     const attempt = await quizService.submitAttempt(
       session.user.id,
       category,
       date,
-      answers
+      answers,
+      retake
     );
 
     return ok(attempt, 201);

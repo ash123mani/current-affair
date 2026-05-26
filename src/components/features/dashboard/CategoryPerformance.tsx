@@ -1,4 +1,4 @@
-import { SimpleGrid, Paper, Group, Text, RingProgress } from "@mantine/core";
+import { SimpleGrid, Paper, Group, Text, RingProgress, Badge, Box } from "@mantine/core";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ACCURACY_THRESHOLD } from "@/constants";
 import type { CategoryStat } from "@/types/api";
@@ -7,40 +7,56 @@ interface CategoryPerformanceProps {
   stats: CategoryStat[];
 }
 
+const BORDER_COLORS = ["#667eea", "#f59e0b", "#06b6d4", "#ec4899", "#3b82f6", "#8b5cf6", "#ef4444", "#10b981"];
+
 export function CategoryPerformance({ stats }: CategoryPerformanceProps) {
   if (stats.length === 0) {
-    return (
-      <EmptyState message="No quizzes attempted yet. Start playing to see your stats!" />
-    );
+    return <EmptyState message="No quizzes attempted yet. Start playing to see your stats!" />;
   }
 
   return (
-    <SimpleGrid cols={{ base: 1, md: 2 }} spacing="lg" mb="xl">
-      {stats.map((cat) => (
-        <Paper key={cat.slug} withBorder p="md" radius="md">
-          <Group>
-            <RingProgress
-              size={80}
-              thickness={8}
-              sections={[
-                {
-                  value: cat.accuracy,
-                  color: cat.accuracy >= ACCURACY_THRESHOLD ? "teal" : "red",
-                },
-              ]}
-            />
-            <div>
-              <Text fw={500}>{cat.name}</Text>
-              <Text size="sm" c="dimmed">
-                {cat.totalScore}/{cat.totalQuestions} correct ({cat.accuracy}%)
-              </Text>
-              <Text size="xs" c="dimmed">
-                {cat.attempts} attempt{cat.attempts > 1 ? "s" : ""}
-              </Text>
-            </div>
-          </Group>
-        </Paper>
-      ))}
+    <SimpleGrid cols={{ base: 1, md: 2 }} spacing="md" mb="xl">
+      {stats.map((cat, idx) => {
+        const passed = cat.accuracy >= ACCURACY_THRESHOLD;
+        const borderColor = BORDER_COLORS[idx % BORDER_COLORS.length];
+        return (
+          <Paper
+            key={cat.slug}
+            withBorder
+            p="lg"
+            radius="lg"
+            bg="white"
+            className="animate-up card-hover"
+            style={{ borderLeft: `4px solid ${borderColor}` }}
+          >
+            <Group>
+              <RingProgress
+                size={80}
+                thickness={8}
+                roundCaps
+                sections={[{ value: cat.accuracy, color: passed ? "green" : "red" }]}
+                label={<Text ta="center" fw={700} size="xs">{cat.accuracy}%</Text>}
+              />
+              <Box style={{ flex: 1 }}>
+                <Group gap="xs" mb={2}>
+                  <Text fw={600} size="sm">{cat.name}</Text>
+                </Group>
+                <Text size="xs" c="dimmed" mb={4}>
+                  {cat.totalScore}/{cat.totalQuestions} correct
+                </Text>
+                <Group gap="xs">
+                  <Badge size="xs" color={passed ? "green" : "red"} variant="light">
+                    {cat.attempts} attempt{cat.attempts > 1 ? "s" : ""}
+                  </Badge>
+                  <Badge size="xs" color="gray" variant="light">
+                    {cat.accuracy}% acc
+                  </Badge>
+                </Group>
+              </Box>
+            </Group>
+          </Paper>
+        );
+      })}
     </SimpleGrid>
   );
 }

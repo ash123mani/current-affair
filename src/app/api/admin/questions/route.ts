@@ -96,11 +96,15 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url);
     const category = searchParams.get("category");
+    const date = searchParams.get("date");
 
     const where: Prisma.QuestionWhereInput = {};
     if (category) {
       const cat = await categoryRepository.findBySlug(category);
       if (cat) where.categoryId = cat.id;
+    }
+    if (date) {
+      where.date = date;
     }
 
     const questions = await questionRepository.findWithCategory(where);

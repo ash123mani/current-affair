@@ -67,10 +67,26 @@ export async function POST(request: NextRequest) {
 
     const targetDate = parsed.data.date ?? today();
     const categorySlug = parsed.data.category;
+    const categories = parsed.data.categories;
 
-    const result = categorySlug
-      ? await populateService.populateSingleCategory(categorySlug, targetDate)
-      : await populateService.populateForDate(targetDate);
+    let result;
+    if (categories && categories.length > 0) {
+      const results = await Promise.all(
+        categories.map((c) => populateService.populateSingleCategory(c, targetDate))
+      );
+      result = results.reduce(
+        (acc, r) => ({
+          totalGenerated: acc.totalGenerated + r.totalGenerated,
+          categoryResults: [...acc.categoryResults, ...r.categoryResults],
+          errors: [...acc.errors, ...r.errors],
+        }),
+        { totalGenerated: 0, categoryResults: [], errors: [] as string[] }
+      );
+    } else if (categorySlug) {
+      result = await populateService.populateSingleCategory(categorySlug, targetDate);
+    } else {
+      result = await populateService.populateForDate(targetDate);
+    }
 
     return ok({
       success: true,

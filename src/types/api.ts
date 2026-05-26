@@ -1,3 +1,33 @@
+export interface GeneratedQuestionData {
+  text: string;
+  options: string[];
+  correctIndex: number;
+  explanation: string;
+}
+
+export interface NewsFeedArticle {
+  title: string;
+  description: string;
+  source: string;
+  url: string;
+  publishedAt: string;
+}
+
+export interface NewsFeedCategory {
+  categorySlug: string;
+  categoryName: string;
+  articles: NewsFeedArticle[];
+}
+
+export interface GenerateFromArticleResponse {
+  success: boolean;
+  question: GeneratedQuestionData;
+}
+
+export interface SaveDraftResponse {
+  success: boolean;
+}
+
 export interface ApiError {
   error: string;
   code?: string;
@@ -73,6 +103,27 @@ export interface QuizResult {
   }[];
 }
 
+export interface AttemptDetailResponse {
+  id: string;
+  date: string;
+  score: number;
+  total: number;
+  completedAt: string;
+  category: { name: string; slug: string };
+  answers: {
+    questionId: string;
+    selectedIndex: number;
+    isCorrect: boolean;
+    question: {
+      id: string;
+      text: string;
+      options: string[];
+      correctIndex: number;
+      explanation: string | null;
+    };
+  }[];
+}
+
 export interface SubmitAnswer {
   questionId: string;
   selectedIndex: number;
@@ -92,6 +143,32 @@ export interface CreateQuestionInput {
   correctIndex: number;
   explanation?: string;
   source?: string;
+}
+
+export interface HomeCategory {
+  id: string;
+  name: string;
+  slug: string;
+  icon: string | null;
+  color: string | null;
+  questionCount: number;
+}
+
+export interface HomeData {
+  date: string;
+  categories: HomeCategory[];
+}
+
+export interface NewsSource {
+  id: string;
+  name: string;
+  description: string;
+  category: string;
+  url: string;
+}
+
+export interface GenerateQuizResponse {
+  questions: GeneratedQuestionData[];
 }
 
 export interface PopulateResult {

@@ -66,4 +66,22 @@ export const quizRepository = {
       _sum: { score: true, total: true },
       _count: true,
     }),
+
+  deleteAttempt: (id: string) =>
+    prisma.quizAttempt.delete({ where: { id } }),
+
+  findById: (id: string) =>
+    prisma.quizAttempt.findUnique({
+      where: { id },
+      include: {
+        category: { select: { name: true, slug: true } },
+        answers: {
+          include: {
+            question: {
+              select: { id: true, text: true, options: true, correctIndex: true, explanation: true },
+            },
+          },
+        },
+      },
+    }),
 };

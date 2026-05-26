@@ -1,4 +1,4 @@
-import { Container, Text, Center, Loader, Stack } from "@mantine/core";
+import { Container, Text, Center, Loader, Stack, Paper } from "@mantine/core";
 
 interface LoadingStateProps {
   message?: string;
@@ -7,12 +7,14 @@ interface LoadingStateProps {
 export function LoadingState({ message = "Loading..." }: LoadingStateProps) {
   return (
     <Container size="sm" py="xl">
-      <Center>
-        <Stack align="center" gap="md">
-          <Loader />
-          <Text c="dimmed">{message}</Text>
-        </Stack>
-      </Center>
+      <Paper withBorder p="xl" radius="lg" bg="white">
+        <Center>
+          <Stack align="center" gap="md">
+            <Loader color="violet" />
+            <Text c="dimmed" size="sm">{message}</Text>
+          </Stack>
+        </Center>
+      </Paper>
     </Container>
   );
 }

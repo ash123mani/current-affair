@@ -5,7 +5,7 @@ import { quizRepository } from "../repositories/quiz.repository";
 
 type CategoryRepo = Pick<typeof categoryRepository, "findBySlug">;
 type QuestionRepo = Pick<typeof questionRepository, "findFullByCategoryAndDate">;
-type QuizRepo = Pick<typeof quizRepository, "findAttempt" | "createAttempt">;
+type QuizRepo = Pick<typeof quizRepository, "findAttempt" | "createAttempt" | "deleteAttempt" | "findById">;
 
 export class QuizService {
   constructor(
@@ -18,13 +18,17 @@ export class QuizService {
     userId: string,
     categorySlug: string,
     date: string,
-    answers: { questionId: string; selectedIndex: number }[]
+    answers: { questionId: string; selectedIndex: number }[],
+    retake: boolean = false
   ) {
     const category = await this.categoryRepo.findBySlug(categorySlug);
     if (!category) throw new NotFoundError("Category");
 
     const existing = await this.quizRepo.findAttempt(userId, category.id, date);
-    if (existing) throw new ConflictError("Already attempted this quiz");
+    if (existing) {
+      if (!retake) throw new ConflictError("Already attempted this quiz");
+      await this.quizRepo.deleteAttempt(existing.id);
+    }
 
     const questions = await this.questionRepo.findFullByCategoryAndDate(
       category.id,
@@ -49,6 +53,12 @@ export class QuizService {
       total: questions.length,
       answers: answerData,
     });
+  }
+
+  async getAttemptDetails(attemptId: string) {
+    const attempt = await this.quizRepo.findById(attemptId);
+    if (!attempt) throw new NotFoundError("Attempt");
+    return attempt;
   }
 }
 

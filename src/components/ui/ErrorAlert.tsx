@@ -1,4 +1,4 @@
-import { Alert, Container } from "@mantine/core";
+import { Alert, Container, Paper } from "@mantine/core";
 
 interface ErrorAlertProps {
   message: string;
@@ -7,7 +7,9 @@ interface ErrorAlertProps {
 export function ErrorAlert({ message }: ErrorAlertProps) {
   return (
     <Container size="sm" py="xl">
-      <Alert color="red">{message}</Alert>
+      <Paper withBorder p="lg" radius="lg" bg="white">
+        <Alert color="red" variant="light">{message}</Alert>
+      </Paper>
     </Container>
   );
 }

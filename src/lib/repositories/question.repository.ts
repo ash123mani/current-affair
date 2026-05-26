@@ -48,16 +48,16 @@ export const questionRepository = {
   findById: (id: string) =>
     prisma.question.findUnique({ where: { id }, include: { category: { select: { name: true, slug: true } } } }),
 
-  findDraftQuestions: () =>
+  findDraftQuestions: (date?: string) =>
     prisma.question.findMany({
-      where: { status: QUESTION_STATUS.DRAFT },
+      where: { status: QUESTION_STATUS.DRAFT, ...(date ? { date } : {}) },
       include: { category: { select: { name: true, slug: true } } },
       orderBy: { createdAt: "desc" },
     }),
 
-  countByCategoryAndDate: (categoryId: string, date: string) =>
+  countByCategoryAndDate: (categoryId: string, date: string, status?: QuestionStatus) =>
     prisma.question.count({
-      where: { categoryId, date, status: QUESTION_STATUS.PUBLISHED },
+      where: { categoryId, date, ...(status ? { status } : {}) },
     }),
 
   groupCountByCategory: (date: string) =>

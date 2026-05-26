@@ -5,7 +5,7 @@ import { api } from "@/lib/api/client";
 import { notifySuccess, notifyError } from "@/lib/notify";
 import type { QuestionResponse } from "@/types/api";
 
-export function useQuiz(category: string) {
+export function useQuiz(category: string, date?: string) {
   const [questions, setQuestions] = useState<QuestionResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -20,24 +20,25 @@ export function useQuiz(category: string) {
     setLoading(true);
     setError(null);
     try {
-      const data = await api.questions.list(category);
+      const data = await api.questions.list(category, date);
       setQuestions(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load questions");
     } finally {
       setLoading(false);
     }
-  }, [category]);
+  }, [category, date]);
 
   const submit = useCallback(
     async (
       date: string,
-      answers: { questionId: string; selectedIndex: number }[]
+      answers: { questionId: string; selectedIndex: number }[],
+      retake?: boolean
     ) => {
       setSubmitting(true);
       setError(null);
       try {
-        const attemptResult = await api.quiz.attempt(category, date, answers);
+        const attemptResult = await api.quiz.attempt(category, date, answers, retake);
         setResult({
           score: attemptResult.score,
           total: attemptResult.total,
@@ -55,6 +56,13 @@ export function useQuiz(category: string) {
     [category]
   );
 
+  const retake = useCallback(() => {
+    setResult(null);
+    setQuestions([]);
+    setError(null);
+    fetchQuestions();
+  }, [fetchQuestions]);
+
   return {
     questions,
     loading,
@@ -63,5 +71,6 @@ export function useQuiz(category: string) {
     result,
     fetchQuestions,
     submit,
+    retake,
   };
 }

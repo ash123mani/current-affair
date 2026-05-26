@@ -3,12 +3,19 @@ import type {
   ApiError,
   QuestionResponse,
   AdminQuestionResponse,
+  AttemptDetailResponse,
   AttemptResponse,
   DashboardStats,
   QuizResult,
   SignupInput,
   CreateQuestionInput,
+  NewsSource,
+  GenerateQuizResponse,
   PopulateResult,
+  NewsFeedCategory,
+  GenerateFromArticleResponse,
+  SaveDraftResponse,
+  HomeData,
 } from "@/types/api";
 import type { CategoryModel } from "@/types/models";
 
@@ -54,6 +61,26 @@ async function request<T>(url: string, options: RequestOptions = {}): Promise<T>
 }
 
 export const api = {
+  home: {
+    data: (date?: string) =>
+      request<HomeData>(API_ROUTES.HOME, {
+        params: date ? { date } : {},
+      }),
+  },
+
+  news: {
+    sources: (country?: string) =>
+      request<{ sources: NewsSource[] }>(API_ROUTES.NEWS_SOURCES, {
+        params: country ? { country } : {},
+      }),
+
+    articles: (country: string, sources: string[], fromDate?: string, toDate?: string) =>
+      request<{ articles: { title: string; description: string; source: string; url: string; publishedAt: string }[] }>(
+        API_ROUTES.NEWS_ARTICLES,
+        { params: { country, sources: sources.join(","), ...(fromDate ? { from: fromDate } : {}), ...(toDate ? { to: toDate } : {}) } }
+      ),
+  },
+
   categories: {
     list: () => request<CategoryModel[]>(API_ROUTES.CATEGORIES),
   },
@@ -66,11 +93,14 @@ export const api = {
   },
 
   quiz: {
-    attempt: (category: string, date: string, answers: { questionId: string; selectedIndex: number }[]) =>
+    attempt: (category: string, date: string, answers: { questionId: string; selectedIndex: number }[], retake?: boolean) =>
       request<QuizResult>(API_ROUTES.QUIZ_ATTEMPT, {
         method: "POST",
-        body: { category, date, answers },
+        body: { category, date, answers, retake },
       }),
+
+    attemptDetails: (id: string) =>
+      request<AttemptDetailResponse>(`${API_ROUTES.QUIZ_ATTEMPT}/${id}`),
 
     history: (page: number = 1, category?: string) =>
       request<{
@@ -86,6 +116,12 @@ export const api = {
       }),
 
     stats: () => request<DashboardStats>(API_ROUTES.QUIZ_STATS),
+
+    generate: (articles: { title: string; description: string; source: string }[], category: string, date?: string) =>
+      request<GenerateQuizResponse>(API_ROUTES.QUIZ_GENERATE, {
+        method: "POST",
+        body: { articles, category, date },
+      }),
   },
 
   auth: {
@@ -98,9 +134,9 @@ export const api = {
 
   admin: {
     questions: {
-      list: (category?: string) =>
+      list: (category?: string, date?: string) =>
         request<AdminQuestionResponse[]>(API_ROUTES.ADMIN_QUESTIONS, {
-          params: category ? { category } : {},
+          params: { ...(category ? { category } : {}), ...(date ? { date } : {}) },
         }),
 
       create: (input: CreateQuestionInput) =>
@@ -148,15 +184,49 @@ export const api = {
         }),
     },
 
-    populate: (date?: string, category?: string) =>
+    newsFeed: (country?: string) =>
+      request<{ categories: NewsFeedCategory[] }>(API_ROUTES.ADMIN_NEWS_FEED, {
+        params: country ? { country } : {},
+      }),
+
+    generateFromArticle: (article: {
+      categorySlug: string;
+      categoryName?: string;
+      title: string;
+      description?: string;
+      source?: string;
+      date?: string;
+    }) =>
+      request<GenerateFromArticleResponse>(API_ROUTES.ADMIN_GENERATE_FROM_ARTICLE, {
+        method: "POST",
+        body: article,
+      }),
+
+    saveDraft: (data: {
+      categorySlug: string;
+      date?: string;
+      text: string;
+      options: string[];
+      correctIndex: number;
+      explanation?: string;
+      source?: string;
+    }) =>
+      request<SaveDraftResponse>(API_ROUTES.ADMIN_SAVE_DRAFT, {
+        method: "POST",
+        body: data,
+      }),
+
+    populate: (date?: string, category?: string, categories?: string[]) =>
       request<PopulateResult>(API_ROUTES.ADMIN_POPULATE, {
         method: "POST",
-        body: { ...(date ? { date } : {}), ...(category ? { category } : {}) },
+        body: { ...(date ? { date } : {}), ...(category ? { category } : {}), ...(categories ? { categories } : {}) },
       }),
 
     draftQuestions: {
-      list: () =>
-        request<AdminQuestionResponse[]>(`${API_ROUTES.ADMIN_QUESTIONS}/drafts`),
+      list: (date?: string) =>
+        request<AdminQuestionResponse[]>(`${API_ROUTES.ADMIN_QUESTIONS}/drafts`, {
+          params: date ? { date } : {},
+        }),
     },
   },
 };

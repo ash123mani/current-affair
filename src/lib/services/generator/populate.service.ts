@@ -1,6 +1,6 @@
 import { CATEGORIES } from "@/constants/categories";
 import { categoryRepository } from "@/lib/repositories/category.repository";
-import { questionRepository } from "@/lib/repositories/question.repository";
+import { questionRepository, QUESTION_STATUS } from "@/lib/repositories/question.repository";
 import { newsService } from "./news.service";
 import { llmService } from "./llm.service";
 import { today } from "@/lib/date";
@@ -35,11 +35,26 @@ export class PopulateService {
       ? CATEGORIES.filter((c) => c.slug === specificCategory)
       : CATEGORIES;
 
-    for (const cat of categoriesToProcess) {
-      const categoryResult = await this.processCategory(cat.slug, cat.name, targetDate);
-      result.categoryResults.push(categoryResult);
-      result.totalGenerated += categoryResult.questionsGenerated;
-      result.errors.push(...categoryResult.errors);
+    const settled = await Promise.allSettled(
+      categoriesToProcess.map((cat) =>
+        this.processCategory(cat.slug, cat.name, targetDate).then(
+          (categoryResult) => ({ cat, categoryResult })
+        )
+      )
+    );
+
+    for (const s of settled) {
+      if (s.status === "fulfilled") {
+        const { categoryResult } = s.value;
+        result.categoryResults.push(categoryResult);
+        result.totalGenerated += categoryResult.questionsGenerated;
+        result.errors.push(...categoryResult.errors);
+      } else {
+        const reason = s.reason;
+        result.errors.push(
+          `Category processing failed: ${reason instanceof Error ? reason.message : "Unknown error"}`
+        );
+      }
     }
 
     return result;
@@ -80,24 +95,25 @@ export class PopulateService {
         };
       }
 
-      const existingCount = await questionRepository.countByCategoryAndDate(
+      const existingPublished = await questionRepository.countByCategoryAndDate(
         dbCategory.id,
-        date
+        date,
+        QUESTION_STATUS.PUBLISHED
       );
-      if (existingCount > 0) {
+      if (existingPublished >= 3) {
         return {
           categorySlug: slug,
           categoryName: name,
           articlesFound: 0,
           questionsGenerated: 0,
-          errors: [],
+          errors: [`${existingPublished} published questions already exist for ${date}`],
         };
       }
 
       let articles: NewsArticle[];
 
       try {
-        const categorizedNews = await newsService.fetchTopHeadlines();
+        const categorizedNews = await newsService.fetchTopHeadlines("in", date);
         const categoryNews = categorizedNews.find((c) => c.categorySlug === slug);
         articles = categoryNews?.articles ?? [];
       } catch (error) {
@@ -146,6 +162,7 @@ export class PopulateService {
             correctIndex: q.correctIndex,
             explanation: q.explanation,
             source: "Auto-generated",
+            status: QUESTION_STATUS.DRAFT,
           });
           questionsGenerated++;
         } catch (createError) {
