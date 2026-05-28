@@ -1,21 +1,11 @@
 "use client";
 
-import {
-  Container,
-  Paper,
-  Title,
-  TextInput,
-  PasswordInput,
-  Button,
-  Text,
-  Anchor,
-  Stack,
-  Divider,
-} from "@mantine/core";
+import { Container, Paper, Title, TextInput, PasswordInput, Button, Text, Anchor, Stack, Divider, Center } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { useAuth } from "@/hooks/use-auth";
+import { LogoMark } from "@/components/layout/LogoMark";
 
 export default function LoginPage() {
   const { error, loading, login } = useAuth();
@@ -31,17 +21,20 @@ export default function LoginPage() {
 
   return (
     <Container size={420} my={40}>
-      <Title ta="center" order={2}>
+      <Center mb="lg">
+        <LogoMark size={40} />
+      </Center>
+      <Title ta="center" order={2} style={{ fontFamily: "var(--font-serif)" }}>
         Welcome back
       </Title>
-      <Text c="dimmed" size="sm" ta="center" mt={5}>
+      <Text c="gray.5" size="sm" ta="center" mt={4}>
         Don&apos;t have an account?{" "}
-        <Anchor component={Link} href="/auth/signup" size="sm">
+        <Anchor component={Link} href="/auth/signup" size="sm" c="terracotta.5">
           Sign up
         </Anchor>
       </Text>
 
-      <Paper withBorder shadow="md" p={30} mt={30} radius="md">
+      <Paper withBorder p="xl" mt="lg" radius="lg">
         <form onSubmit={form.onSubmit(handleSubmit)}>
           <Stack>
             <TextInput
@@ -59,11 +52,9 @@ export default function LoginPage() {
               {...form.getInputProps("password")}
             />
             {error && (
-              <Text c="red" size="sm">
-                {error}
-              </Text>
+              <Text c="red" size="sm">{error}</Text>
             )}
-            <Button type="submit" fullWidth loading={loading}>
+            <Button type="submit" fullWidth loading={loading} color="terracotta">
               Sign in
             </Button>
           </Stack>
@@ -71,11 +62,12 @@ export default function LoginPage() {
 
         <Divider label="Or continue with" labelPosition="center" my="lg" />
         <Button
-          variant="default"
+          variant="outline"
+          color="gray"
           fullWidth
           onClick={() => signIn("google", { callbackUrl: "/" })}
         >
-          Sign in with Google
+          Continue with Google
         </Button>
       </Paper>
     </Container>

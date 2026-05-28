@@ -1,11 +1,13 @@
 "use client";
 
 import {
-  Group, Button, Text, Container, Anchor, Avatar, Menu, UnstyledButton, Paper, Box, ActionIcon, useMantineColorScheme,
+  Group, Button, Text, Container, Anchor, Avatar, Menu, UnstyledButton, Paper, Box, ActionIcon, Burger, Drawer, Stack, useMantineColorScheme,
 } from "@mantine/core";
+import { useDisclosure } from "@mantine/hooks";
 import { useSession, signOut } from "next-auth/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { LogoMark } from "./LogoMark";
 
 function HomeIcon() {
   return (
@@ -38,22 +40,6 @@ function QuizIcon() {
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <circle cx="12" cy="12" r="10" /><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" /><line x1="12" y1="17" x2="12.01" y2="17" />
     </svg>
-  );
-}
-
-function LogoMark() {
-  return (
-    <Box
-      style={{
-        width: 28, height: 28, borderRadius: 8,
-        background: "#D97B4F",
-        display: "flex", alignItems: "center", justifyContent: "center",
-        color: "white", fontWeight: 700, fontSize: 12,
-        letterSpacing: "-0.02em", flexShrink: 0,
-      }}
-    >
-      CA
-    </Box>
   );
 }
 
@@ -90,6 +76,7 @@ function ThemeToggle() {
 export function Navbar() {
   const { data: session } = useSession();
   const pathname = usePathname();
+  const [mobileOpen, { toggle: toggleMobile, close: closeMobile }] = useDisclosure(false);
 
   const navLinks = [
     { href: "/", label: "Home", icon: HomeIcon },
@@ -142,7 +129,8 @@ export function Navbar() {
             })}
           </Group>
 
-          <Group gap={6} wrap="nowrap">
+          <Group gap={4} wrap="nowrap">
+            <Burger opened={mobileOpen} onClick={toggleMobile} size="sm" hiddenFrom="xs" aria-label="Toggle navigation" />
             <ThemeToggle />
             {session?.user ? (
               <>
@@ -197,6 +185,50 @@ export function Navbar() {
           </Group>
         </Group>
       </Container>
+
+      <Drawer
+        opened={mobileOpen}
+        onClose={closeMobile}
+        size="260px"
+        padding="md"
+        title={
+          <Group gap={10}>
+            <LogoMark />
+            <Text fw={600} size="sm" style={{ fontFamily: "var(--font-serif)" }}>CurrentAffair</Text>
+          </Group>
+        }
+      >
+        <Stack gap={4} mt="md">
+          {navLinks.map((link) => {
+            const isActive = pathname === link.href;
+            return (
+              <Button
+                key={link.href}
+                component={Link}
+                href={link.href}
+                variant={isActive ? "light" : "subtle"}
+                color={isActive ? "terracotta" : "warmGray"}
+                size="sm"
+                fullWidth
+                justify="flex-start"
+                leftSection={<link.icon />}
+                onClick={closeMobile}
+              >
+                {link.label}
+              </Button>
+            );
+          })}
+          {session?.user && <Button
+            component={Link} href="/"
+            variant="light" color="terracotta" size="sm"
+            fullWidth justify="flex-start"
+            leftSection={<QuizIcon />}
+            onClick={closeMobile}
+          >
+            New Quiz
+          </Button>}
+        </Stack>
+      </Drawer>
     </Paper>
   );
 }

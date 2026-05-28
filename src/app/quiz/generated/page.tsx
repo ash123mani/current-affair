@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense } from "react";
+import { Suspense, useCallback, useRef, useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Container, Title, Text, Button, Stack, Paper, Group } from "@mantine/core";
 import { useGeneratedQuiz } from "@/hooks/use-generated-quiz";
@@ -8,6 +8,7 @@ import { LoadingSkeleton } from "@/components/ui/LoadingState";
 import { QuizTimer } from "@/components/ui/QuizTimer";
 import { QuizHeader } from "./_components/QuizHeader";
 import { QuestionCardView } from "./_components/QuestionCardView";
+import { QuizProgressDots } from "./_components/QuizProgressDots";
 import { ResultView } from "./_components/ResultView";
 
 function ErrorView({ message, onBack }: { message: string; onBack: () => void }) {
@@ -28,6 +29,35 @@ function GeneratedQuizContent() {
   const category = searchParams.get("category");
   const date = searchParams.get("date");
   const { state, actions, allAnswered } = useGeneratedQuiz(category, date);
+  const [visibleQ, setVisibleQ] = useState(0);
+  const questionRefs = useRef<(HTMLDivElement | null)[]>([]);
+
+  useEffect(() => {
+    if (state.loading || state.submitted) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            const idx = Number(entry.target.getAttribute("data-qidx"));
+            if (!isNaN(idx)) setVisibleQ(idx);
+          }
+        }
+      },
+      { rootMargin: "-40% 0px -40% 0px" }
+    );
+    questionRefs.current.forEach((ref) => {
+      if (ref) observer.observe(ref);
+    });
+    return () => observer.disconnect();
+  }, [state.loading, state.submitted, state.questions.length]);
+
+  const scrollToQuestion = useCallback((idx: number) => {
+    const el = questionRefs.current[idx];
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
+      setVisibleQ(idx);
+    }
+  }, []);
 
   if (state.loading) return <LoadingSkeleton page="generated-quiz" />;
 
@@ -59,19 +89,26 @@ function GeneratedQuizContent() {
     <Container size="sm" py="xl">
       <QuizHeader answered={answeredCount} total={state.questions.length} />
 
-      <Group justify="end" mb="md">
-        <QuizTimer totalMinutes={5} />
+      <Group justify="space-between" align="center" mb="md">
+        <QuizProgressDots
+          total={state.questions.length}
+          currentIndex={visibleQ}
+          answered={state.selected}
+          onJump={scrollToQuestion}
+        />
+        <QuizTimer totalMinutes={5} onTimeout={actions.submit} />
       </Group>
 
       <Stack gap="md">
         {state.questions.map((qq, idx) => (
-          <QuestionCardView
-            key={idx}
-            question={qq}
-            selectedOption={state.selected[idx]}
-            onSelect={(optIdx) => actions.selectAnswer(idx, optIdx)}
-            questionNum={idx}
-          />
+          <div key={idx} ref={(el) => { questionRefs.current[idx] = el; }} data-qidx={idx}>
+            <QuestionCardView
+              question={qq}
+              selectedOption={state.selected[idx]}
+              onSelect={(optIdx) => actions.selectAnswer(idx, optIdx)}
+              questionNum={idx}
+            />
+          </div>
         ))}
       </Stack>
 
