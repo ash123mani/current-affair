@@ -1,4 +1,4 @@
-import { Container, Paper, Title, Text, Button, Stack, Group, Badge, Divider, ThemeIcon, RingProgress } from "@mantine/core";
+import { Container, Paper, Title, Text, Button, Stack, Group, Badge, Divider, RingProgress } from "@mantine/core";
 import { ACCURACY_THRESHOLD } from "@/constants";
 import type { QuestionResponse } from "@/types/api";
 
@@ -27,46 +27,30 @@ export function QuizResultView({
   return (
     <Container size="sm" py="xl">
       <Paper withBorder p="xl" radius="md" ta="center" mb="xl" bg="white">
-        <Title order={3} mb="lg">
-          Quiz Complete!
-        </Title>
+        <Title order={3} mb="lg">Quiz Complete!</Title>
 
         <Group justify="center" mb="lg">
           <RingProgress
-            size={140}
-            thickness={12}
-            roundCaps
+            size={140} thickness={12} roundCaps
             sections={[{ value: percentage, color: passed ? "green" : "red" }]}
-            label={
-              <Text ta="center" fw={700} size="xl">
-                {percentage}%
-              </Text>
-            }
+            label={<Text ta="center" fw={700} size="xl">{percentage}%</Text>}
           />
         </Group>
 
-        <Text size="lg" fw={600}>
-          {score} / {total} correct
-        </Text>
+        <Text size="lg" fw={600}>{score} / {total} correct</Text>
         <Badge color={passed ? "green" : "red"} size="lg" mt="sm" variant="light">
           {passed ? "Passed" : "Needs Improvement"}
         </Badge>
 
         <Group mt="xl" grow>
           {onRetake && (
-            <Button onClick={onRetake} variant="light" color="blue">
-              Retake Quiz
-            </Button>
+            <Button onClick={onRetake} variant="light" color="indigo">Retake Quiz</Button>
           )}
-          <Button onClick={onBackHome} variant="light">
-            Back to Home
-          </Button>
+          <Button onClick={onBackHome} variant="light">Back to Home</Button>
         </Group>
       </Paper>
 
-      <Title order={4} mb="md">
-        Review Answers
-      </Title>
+      <Title order={4} mb="md">Review Answers</Title>
 
       <Stack gap="md">
         {questions.map((q, idx) => {
@@ -77,17 +61,13 @@ export function QuizResultView({
           return (
             <Paper key={q.id} withBorder p="md" radius="md" bg="white">
               <Group mb="sm" gap="xs">
-                <Text size="xs" c="dimmed" fw={600}>
-                  #{idx + 1}
-                </Text>
+                <Text size="xs" c="dimmed" fw={600}>#{idx + 1}</Text>
                 <Badge color={isCorrect ? "green" : "red"} size="sm" variant="light">
                   {isCorrect ? "Correct" : "Wrong"}
                 </Badge>
               </Group>
 
-              <Text fw={500} size="sm" mb="md">
-                {q.text}
-              </Text>
+              <Text fw={500} size="sm" mb="md">{q.text}</Text>
 
               <Stack gap={6}>
                 {q.options.map((opt, optIdx) => {
@@ -116,36 +96,12 @@ export function QuizResultView({
                   }
 
                   return (
-                    <Group
-                      key={optIdx}
-                      gap="sm"
-                      p="xs"
-                    >
-                      <div
-                        style={{
-                          width: 24,
-                          height: 24,
-                          borderRadius: "50%",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          background: labelBg,
-                          color: labelColor,
-                          fontWeight: 700,
-                          fontSize: 11,
-                          flexShrink: 0,
-                        }}
-                      >
+                    <Group key={optIdx} gap="sm" p="xs" style={{ background: bg, borderRadius: 8, border: `1px solid ${borderColor}` }}>
+                      <div className="opt-circle-sm" style={{ background: labelBg, color: labelColor }}>
                         {optionLabels[optIdx]}
                       </div>
-                      <Text
-                        size="sm"
-                        style={{ flex: 1, textDecoration: isWrongSelection ? "line-through" : "none" }}
-                        c={textColor}
-                        fw={isCorrectOption ? 600 : 400}
-                      >
-                        {opt}
-                        {isCorrectOption && !isSelected && " ✓"}
+                      <Text size="sm" className="flex-1" td={isWrongSelection ? "line-through" : "none"} c={textColor} fw={isCorrectOption ? 600 : 400}>
+                        {opt}{isCorrectOption && !isSelected && " ✓"}
                       </Text>
                     </Group>
                   );
@@ -156,12 +112,10 @@ export function QuizResultView({
                 <>
                   <Divider my="sm" />
                   <Group gap="xs" align="flex-start" wrap="nowrap">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--mantine-color-blue-6)" strokeWidth="2" style={{ marginTop: 2, flexShrink: 0 }}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--mantine-color-indigo-6)" strokeWidth="2" className="flex-shrink-0" style={{ marginTop: 2 }}>
                       <circle cx="12" cy="12" r="10" /><path d="M12 16v-4" /><path d="M12 8h.01" />
                     </svg>
-                    <Text size="xs" c="dimmed">
-                      {q.explanation}
-                    </Text>
+                    <Text size="xs" c="dimmed">{q.explanation}</Text>
                   </Group>
                 </>
               )}
@@ -170,9 +124,7 @@ export function QuizResultView({
         })}
       </Stack>
 
-      <Button onClick={onBackHome} fullWidth mt="xl" size="md">
-        Back to Home
-      </Button>
+      <Button onClick={onBackHome} fullWidth mt="xl" size="md">Back to Home</Button>
     </Container>
   );
 }

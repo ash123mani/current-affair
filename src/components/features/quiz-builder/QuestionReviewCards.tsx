@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react";
 import {
-  Paper, Title, Text, Group, Badge, Button, Box, ActionIcon, Stack, Anchor, ThemeIcon,
+  Paper, Title, Text, Group, Badge, Button, Box, ActionIcon, Stack, Anchor,
 } from "@mantine/core";
 import type { GeneratedQuestion } from "@/lib/services/generator/llm.service";
 
@@ -57,9 +57,8 @@ export function QuestionReviewCards({ questions, selectedCount, onStartQuiz, onR
 
   return (
     <Paper withBorder p="xl" radius="lg" bg="white" mb="lg" ta="center" className="animate-up">
-      {/* Progress bar */}
-      <Box mb="md" style={{ height: 4, background: "var(--mantine-color-gray-1)", borderRadius: 2, overflow: "hidden" }}>
-        <Box style={{ height: "100%", width: `${progress}%`, background: "var(--mantine-color-indigo-5)", borderRadius: 2, transition: "width 0.3s ease" }} />
+      <Box mb="md" className="progress-bar">
+        <Box className="progress-fill" style={{ width: `${progress}%`, background: "var(--mantine-color-indigo-5)" }} />
       </Box>
 
       <Group justify="space-between" mb="md">
@@ -71,13 +70,8 @@ export function QuestionReviewCards({ questions, selectedCount, onStartQuiz, onR
         </Group>
       </Group>
 
-      {/* Card */}
       <Paper
-        withBorder
-        p="lg"
-        radius="lg"
-        shadow="sm"
-        mb="lg"
+        withBorder p="lg" radius="lg" shadow="sm" mb="lg"
         style={{
           minHeight: 260,
           transition: "all 0.15s ease",
@@ -85,15 +79,9 @@ export function QuestionReviewCards({ questions, selectedCount, onStartQuiz, onR
           opacity: animDir ? 0.6 : 1,
         }}
       >
-        {/* Article source */}
         {current.articleTitle && (
           <Group justify="center" mb="md">
-            <Badge
-              size="sm"
-              variant="light"
-              color="gray"
-              styles={{ root: { maxWidth: 300 } }}
-            >
+            <Badge size="sm" variant="light" color="gray" styles={{ root: { maxWidth: 300 } }}>
               {current.articleUrl ? (
                 <Anchor href={current.articleUrl} target="_blank" rel="noopener noreferrer" size="xs" c="dimmed" style={{ textDecoration: "none" }}>
                   {current.articleTitle.length > 50 ? current.articleTitle.slice(0, 50) + "…" : current.articleTitle}
@@ -105,28 +93,22 @@ export function QuestionReviewCards({ questions, selectedCount, onStartQuiz, onR
           </Group>
         )}
 
-        <Title order={4} mb="xl" style={{ lineHeight: 1.5, textWrap: "pretty" }}>
+        <Title order={4} mb="xl" className="text-wrap-pretty" style={{ lineHeight: 1.5 }}>
           {current.text}
         </Title>
 
-        {/* Options */}
         <Stack gap="sm">
           {current.options.map((opt, oi) => {
             const isSelected = selectedOption[index] === oi;
             return (
               <Paper
                 key={oi}
-                withBorder
-                p="sm"
-                radius="md"
-                className="card-hover"
+                withBorder p="sm" radius="md" className="option-card"
                 style={{
                   borderColor: isSelected ? "var(--mantine-color-indigo-6)" : "var(--mantine-color-gray-3)",
                   borderWidth: isSelected ? 2 : 1,
                   background: isSelected ? "var(--mantine-color-indigo-0)" : "var(--mantine-color-gray-0)",
                   textAlign: "left",
-                  cursor: "pointer",
-                  transition: "all 0.12s ease",
                 }}
                 onClick={() => {
                   setSelectedOption((prev) => {
@@ -141,12 +123,17 @@ export function QuestionReviewCards({ questions, selectedCount, onStartQuiz, onR
                 }}
               >
                 <Group gap="sm" wrap="nowrap">
-                  <ThemeIcon size={24} radius="xl" color={isSelected ? "indigo" : "gray"} variant={isSelected ? "filled" : "light"}>
-                    <Text size="xs" fw={700}>{optLabels[oi]}</Text>
-                  </ThemeIcon>
-                  <Text size="sm" style={{ textWrap: "pretty" }}>{opt}</Text>
+                  <div className="opt-circle-sm"
+                    style={{
+                      background: isSelected ? "var(--mantine-color-indigo-6)" : "var(--mantine-color-gray-2)",
+                      color: isSelected ? "white" : "var(--mantine-color-gray-6)",
+                    }}
+                  >
+                    {optLabels[oi]}
+                  </div>
+                  <Text size="sm" className="text-wrap-pretty">{opt}</Text>
                   {isSelected && (
-                    <Badge size="xs" variant="filled" color="indigo" ml="auto" style={{ flexShrink: 0 }}>
+                    <Badge size="xs" variant="filled" color="indigo" ml="auto" className="flex-shrink-0">
                       Selected
                     </Badge>
                   )}
@@ -157,13 +144,10 @@ export function QuestionReviewCards({ questions, selectedCount, onStartQuiz, onR
         </Stack>
       </Paper>
 
-      {/* Reaction buttons */}
       <Group justify="center" gap="lg" mb="lg">
         <ActionIcon
-          size={52}
-          radius="xl"
-          variant={reaction === "dislike" ? "filled" : "light"}
-          color="red"
+          size={52} radius="xl"
+          variant={reaction === "dislike" ? "filled" : "light"} color="red"
           onClick={() => { setReaction(reaction === "dislike" ? null : "dislike"); }}
           style={{ transition: "all 0.15s ease", transform: reaction === "dislike" ? "scale(1.1)" : "none" }}
         >
@@ -174,10 +158,8 @@ export function QuestionReviewCards({ questions, selectedCount, onStartQuiz, onR
         </ActionIcon>
 
         <ActionIcon
-          size={52}
-          radius="xl"
-          variant={reaction === "bookmark" ? "filled" : "light"}
-          color="yellow"
+          size={52} radius="xl"
+          variant={reaction === "bookmark" ? "filled" : "light"} color="yellow"
           onClick={() => { setReaction(reaction === "bookmark" ? null : "bookmark"); }}
           style={{ transition: "all 0.15s ease", transform: reaction === "bookmark" ? "scale(1.1)" : "none" }}
         >
@@ -187,10 +169,8 @@ export function QuestionReviewCards({ questions, selectedCount, onStartQuiz, onR
         </ActionIcon>
 
         <ActionIcon
-          size={52}
-          radius="xl"
-          variant={reaction === "like" ? "filled" : "light"}
-          color="green"
+          size={52} radius="xl"
+          variant={reaction === "like" ? "filled" : "light"} color="green"
           onClick={() => { setReaction(reaction === "like" ? null : "like"); }}
           style={{ transition: "all 0.15s ease", transform: reaction === "like" ? "scale(1.1)" : "none" }}
         >
@@ -201,18 +181,12 @@ export function QuestionReviewCards({ questions, selectedCount, onStartQuiz, onR
         </ActionIcon>
       </Group>
 
-      {/* Navigation */}
       <Group justify="center" gap="md">
-        <Button variant="light" color="gray" onClick={prev} disabled={index === 0}>
-          ← Previous
-        </Button>
+        <Button variant="light" color="gray" onClick={prev} disabled={index === 0}>← Previous</Button>
         {isLast ? (
           <Button
-            variant="gradient"
-            gradient={{ from: "indigo", to: "violet", deg: 45 }}
-            size="lg"
-            onClick={saving ? undefined : onStartQuiz}
-            loading={saving}
+            variant="gradient" gradient={{ from: "indigo", to: "violet", deg: 45 }}
+            size="lg" onClick={saving ? undefined : onStartQuiz} loading={saving}
             style={{ opacity: saving ? 0.7 : 1 }}
             rightSection={saving ? undefined : (
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -223,16 +197,12 @@ export function QuestionReviewCards({ questions, selectedCount, onStartQuiz, onR
             {saving ? "Saving..." : `Start Quiz (${likedCount + bookmarkedCount + (questions.length - likedCount - bookmarkedCount - dislikedCount)} questions)`}
           </Button>
         ) : (
-          <Button variant="gradient" gradient={{ from: "indigo", to: "violet", deg: 45 }} onClick={next}>
-            Next →
-          </Button>
+          <Button variant="gradient" gradient={{ from: "indigo", to: "violet", deg: 45 }} onClick={next}>Next →</Button>
         )}
       </Group>
 
       <Group justify="center" mt="md">
-        <Button variant="subtle" color="gray" size="xs" onClick={onReset}>
-          Start Over
-        </Button>
+        <Button variant="subtle" color="gray" size="xs" onClick={onReset}>Start Over</Button>
       </Group>
     </Paper>
   );
