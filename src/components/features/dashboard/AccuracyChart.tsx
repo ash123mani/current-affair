@@ -17,7 +17,7 @@ interface AccuracyChartProps {
   stats: CategoryStat[];
 }
 
-const BAR_COLORS = ["#667eea", "#f59e0b", "#06b6d4", "#ec4899", "#3b82f6", "#8b5cf6", "#ef4444", "#10b981"];
+const BAR_COLORS = ["#D97B4F", "#E8A87C", "#C4663C", "#A3502C", "#8B7355", "#B4B2A9", "#D3D1C7", "#888780"];
 
 export function AccuracyChart({ stats }: AccuracyChartProps) {
   const data = stats.map((s) => ({
@@ -32,7 +32,7 @@ export function AccuracyChart({ stats }: AccuracyChartProps) {
     <Paper withBorder p="lg" radius="lg" bg="white" mb="xl" className="animate-up">
       <Group mb="md">
         <Title order={4}>Accuracy by Category</Title>
-        <Badge size="sm" variant="light" color="indigo">{data.length} categories</Badge>
+        <Badge size="sm" variant="light" color="terracotta">{data.length} categories</Badge>
       </Group>
       <ResponsiveContainer width="100%" height={280}>
         <BarChart data={data} margin={{ top: 5, right: 10, bottom: 50, left: 0 }}>

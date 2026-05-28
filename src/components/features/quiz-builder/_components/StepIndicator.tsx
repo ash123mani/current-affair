@@ -16,7 +16,7 @@ export function StepIndicator({ stepIndex }: { stepIndex: number }) {
           const active = i === stepIndex;
           return (
             <Group key={s.key} gap={6} wrap="nowrap" flex={1}>
-              <ThemeIcon size={28} radius="xl" color={done ? "green" : active ? "indigo" : "gray"} variant={done || active ? "filled" : "light"}>
+              <ThemeIcon size={28} radius="xl" color={done ? "green" : active ? "terracotta" : "gray"} variant={done || active ? "filled" : "light"}>
                 {done ? (
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                     <polyline points="20 6 9 17 4 12" />

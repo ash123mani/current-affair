@@ -10,7 +10,7 @@ export function QuizHeader({ answered, total }: { answered: number; total: numbe
           <Title order={3}>Quiz</Title>
           <Text size="sm" c="dimmed">{total} questions</Text>
         </Box>
-        <Badge size="lg" variant="light" color="indigo">{answered}/{total}</Badge>
+        <Badge size="lg" variant="light" color="terracotta">{answered}/{total}</Badge>
       </Group>
     </Paper>
   );

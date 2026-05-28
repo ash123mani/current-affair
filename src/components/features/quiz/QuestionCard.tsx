@@ -25,14 +25,14 @@ export function QuestionCard({ question, selected, onSelect }: QuestionCardProps
               onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && onSelect(idx)}
               className="option-card"
               style={{
-                borderColor: isSelected ? "var(--mantine-color-indigo-6)" : "var(--mantine-color-gray-3)",
-                background: isSelected ? "var(--mantine-color-indigo-0)" : "white",
+                borderColor: isSelected ? "var(--mantine-color-terracotta-6)" : "var(--mantine-color-gray-3)",
+                background: isSelected ? "var(--mantine-color-terracotta-0)" : "white",
               }}
             >
               <Group gap="md" wrap="nowrap">
                 <div className="opt-circle"
                   style={{
-                    background: isSelected ? "var(--mantine-color-indigo-6)" : "var(--mantine-color-gray-1)",
+                    background: isSelected ? "var(--mantine-color-terracotta-6)" : "var(--mantine-color-gray-1)",
                     color: isSelected ? "white" : "var(--mantine-color-gray-6)",
                   }}
                 >

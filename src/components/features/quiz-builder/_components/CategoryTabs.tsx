@@ -29,10 +29,10 @@ const CATEGORY_COLORS: Record<string, { color: string; label: string }> = {};
 for (const c of CATEGORIES) {
   CATEGORY_COLORS[c.slug] = { color: c.color, label: c.name };
 }
-CATEGORY_COLORS["general"] = { color: "#667eea", label: "General" };
+CATEGORY_COLORS["general"] = { color: "#D97B4F", label: "General" };
 
 const SOURCE_COLORS = [
-  "#667eea", "#f59e0b", "#06b6d4", "#ec4899",
+  "#D97B4F", "#E8A87C", "#C4663C", "#A3502C",
   "#3b82f6", "#8b5cf6", "#ef4444", "#14b8a6",
   "#f97316", "#6366f1", "#84cc16", "#d946ef",
 ];
@@ -53,7 +53,7 @@ function ArticleCard({ article, selected, onToggle, sourceColor }: { article: Ar
       }}
       onClick={onToggle}
     >
-      <Checkbox checked={selected} onChange={onToggle} color="indigo" size="xs"
+      <Checkbox checked={selected} onChange={onToggle} color="terracotta" size="xs"
         label={
           <Box>
             <Text size="sm" fw={600} mb={2} className="text-wrap-pretty">{article.title}</Text>
@@ -203,7 +203,7 @@ export function CategoryTabs({
                     ? `Generate quiz from ${tab.selectedIndices.length} article${tab.selectedIndices.length > 1 ? "s" : ""}`
                     : "Select articles to generate a quiz"}
                 </Text>
-                <Button size="md" ml="auto" variant="gradient" gradient={{ from: "indigo", to: "violet", deg: 45 }}
+                <Button size="md" ml="auto" variant="gradient" gradient={{ from: "terracotta", to: "terracotta", deg: 45 }}
                   onClick={() => tab.selectedIndices.length > 0 && onGenerateQuiz(slug)}
                   style={{ opacity: tab.selectedIndices.length > 0 ? 1 : 0.5 }}
                   rightSection={

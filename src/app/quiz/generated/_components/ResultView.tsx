@@ -28,7 +28,7 @@ export function ResultView({
         </Badge>
         <Group grow mt="xl">
           {onRetake && (
-            <Button onClick={onRetake} variant="light" color="indigo">Retake Quiz</Button>
+            <Button onClick={onRetake} variant="light" color="terracotta">Retake Quiz</Button>
           )}
           <Button onClick={onBackHome} variant="light">Back to Home</Button>
         </Group>

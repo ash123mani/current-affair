@@ -7,7 +7,7 @@ interface StatCardProps {
   color?: string;
 }
 
-export function StatCard({ label, value, icon, color = "indigo" }: StatCardProps) {
+export function StatCard({ label, value, icon, color = "terracotta" }: StatCardProps) {
   return (
     <Paper
       withBorder

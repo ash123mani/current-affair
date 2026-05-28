@@ -2,87 +2,42 @@ import "@mantine/core/styles.css";
 import "@mantine/notifications/styles.css";
 import "@mantine/dates/styles.css";
 import type { Metadata } from "next";
-import { createTheme, MantineProvider, Box } from "@mantine/core";
+import { DM_Sans, Lora, JetBrains_Mono } from "next/font/google";
+import { MantineProvider, Box } from "@mantine/core";
 import { Notifications } from "@mantine/notifications";
 import { AuthProvider } from "@/lib/auth.provider";
 import { Navbar } from "@/components/layout/Navbar";
 import { PageTransition } from "@/components/layout/PageTransition";
 import { ErrorBoundary } from "@/components/ui/ErrorBoundary";
+import { theme } from "@/lib/theme";
 import "./globals.css";
+
+const fontSans = DM_Sans({
+  subsets: ["latin"],
+  variable: "--font-sans",
+  display: "swap",
+});
+
+const fontSerif = Lora({
+  subsets: ["latin"],
+  variable: "--font-serif",
+  display: "swap",
+});
+
+const fontMono = JetBrains_Mono({
+  subsets: ["latin"],
+  variable: "--font-mono",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "CurrentAffair — Daily Current Affairs Quiz",
   description: "Generate quizzes from live Indian news. Pick a date, choose topics, and test yourself.",
 };
 
-const theme = createTheme({
-  primaryColor: "indigo",
-  defaultRadius: "md",
-  fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-  fontFamilyMonospace: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace',
-  headings: {
-    fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-    fontWeight: "700",
-  },
-  colors: {
-    indigo: [
-      "#f0f0ff",
-      "#d9d9ff",
-      "#b3b3ff",
-      "#8585ff",
-      "#5c5cff",
-      "#4f46e5",
-      "#4338ca",
-      "#3730a3",
-      "#312e81",
-      "#1e1b4b",
-    ],
-  },
-  shadows: {
-    xs: "0 1px 2px rgba(0,0,0,0.03)",
-    sm: "0 2px 8px rgba(0,0,0,0.04)",
-    md: "0 4px 16px rgba(0,0,0,0.06)",
-    lg: "0 8px 32px rgba(0,0,0,0.08)",
-    xl: "0 12px 48px rgba(0,0,0,0.1)",
-  },
-  spacing: {
-    xs: "4px",
-    sm: "8px",
-    md: "16px",
-    lg: "24px",
-    xl: "32px",
-  },
-  radius: {
-    sm: "6px",
-    md: "10px",
-    lg: "16px",
-    xl: "24px",
-  },
-  primaryShade: 6,
-  components: {
-    Paper: {
-      defaultProps: { withBorder: true, shadow: "sm" },
-      styles: { root: { backdropFilter: "blur(8px)" } },
-    },
-    Card: { defaultProps: { withBorder: true, shadow: "sm" } },
-    Button: {
-      defaultProps: { radius: "md", size: "sm" },
-      styles: { root: { fontWeight: 600, letterSpacing: "-0.01em" } },
-    },
-    Badge: { defaultProps: { radius: "md" } },
-    Alert: { defaultProps: { variant: "light", radius: "md" } },
-    TextInput: { defaultProps: { radius: "md" } },
-    Select: { defaultProps: { radius: "md" } },
-  },
-});
-
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" className={`${fontSans.variable} ${fontSerif.variable} ${fontMono.variable}`}>
       <body>
         <MantineProvider theme={theme} defaultColorScheme="light">
           <AuthProvider>

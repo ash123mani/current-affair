@@ -26,10 +26,10 @@ export default function DashboardPage() {
       <Box mb="xl" className="animate-up">
         <Paper
           withBorder p="lg" radius="lg" bg="white"
-          style={{ borderLeft: `4px solid var(--mantine-color-indigo-5)` }}
+          style={{ borderLeft: `4px solid var(--mantine-color-terracotta-5)` }}
         >
           <Group>
-            <Box className="icon-box-44" bg="indigo.5">
+            <Box className="icon-box-44" bg="terracotta.5">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="14" y="14" width="7" height="7" /><rect x="3" y="14" width="7" height="7" />
               </svg>
@@ -38,7 +38,7 @@ export default function DashboardPage() {
               <Title order={3}>Your Dashboard</Title>
               <Text c="dimmed" size="sm">Track your quiz performance and progress</Text>
             </Box>
-            <Badge variant="light" color="indigo" size="lg">
+            <Badge variant="light" color="terracotta" size="lg">
               {stats.totalQuizzes} quiz{stats.totalQuizzes > 1 ? "zes" : ""}
             </Badge>
           </Group>

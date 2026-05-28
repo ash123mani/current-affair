@@ -24,7 +24,7 @@ async function ensureCategory(slug: string): Promise<{ id: string }> {
     slug,
     name: meta?.name ?? slug.charAt(0).toUpperCase() + slug.slice(1),
     icon: slug,
-    color: "#667eea",
+    color: "#D97B4F",
   });
 }
 

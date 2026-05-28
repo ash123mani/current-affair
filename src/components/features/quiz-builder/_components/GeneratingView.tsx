@@ -13,7 +13,7 @@ function QuestionPreview({ q, idx }: { q: GeneratedQuestion; idx: number }) {
   return (
     <Paper withBorder p="sm" radius="md" className="animate-slide-right" opacity={0.85}>
       <Group gap="sm" mb={4}>
-        <Badge size="xs" variant="filled" color="indigo" radius="sm">Q{idx + 1}</Badge>
+        <Badge size="xs" variant="filled" color="terracotta" radius="sm">Q{idx + 1}</Badge>
         {q.articleTitle && (
           <Badge size="xs" variant="light" color="gray" styles={{ root: { maxWidth: 200 } }}>
             {q.articleTitle.length > 35 ? q.articleTitle.slice(0, 35) + "…" : q.articleTitle}
@@ -34,7 +34,7 @@ export function GeneratingView({ questions, totalGenerated, onCancel }: Generati
   return (
     <Paper withBorder p="xl" radius="lg" bg="white" className="animate-up">
       <Group mb="md">
-        <Loader size="sm" color="indigo" />
+        <Loader size="sm" color="terracotta" />
         <Box flex={1}>
           <Text fw={600} size="sm">
             {totalGenerated === 0 ? "Starting generation..." : `Generating questions — ${totalGenerated} ready`}

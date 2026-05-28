@@ -44,7 +44,7 @@ export function QuizResultView({
 
         <Group mt="xl" grow>
           {onRetake && (
-            <Button onClick={onRetake} variant="light" color="indigo">Retake Quiz</Button>
+            <Button onClick={onRetake} variant="light" color="terracotta">Retake Quiz</Button>
           )}
           <Button onClick={onBackHome} variant="light">Back to Home</Button>
         </Group>
@@ -112,7 +112,7 @@ export function QuizResultView({
                 <>
                   <Divider my="sm" />
                   <Group gap="xs" align="flex-start" wrap="nowrap">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--mantine-color-indigo-6)" strokeWidth="2" className="flex-shrink-0" style={{ marginTop: 2 }}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--mantine-color-terracotta-6)" strokeWidth="2" className="flex-shrink-0" style={{ marginTop: 2 }}>
                       <circle cx="12" cy="12" r="10" /><path d="M12 16v-4" /><path d="M12 8h.01" />
                     </svg>
                     <Text size="xs" c="dimmed">{q.explanation}</Text>

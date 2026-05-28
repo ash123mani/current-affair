@@ -9,7 +9,7 @@ import { LoadingSkeleton, LoadingState } from "@/components/ui/LoadingState";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ACCURACY_THRESHOLD } from "@/constants";
 
-const BORDER_COLORS = ["#4f46e5", "#f59e0b", "#06b6d4", "#ec4899", "#3b82f6", "#8b5cf6", "#ef4444", "#10b981"];
+const BORDER_COLORS = ["#D97B4F", "#E8A87C", "#C4663C", "#A3502C", "#8B7355", "#B4B2A9", "#D3D1C7", "#888780"];
 
 function HistoryCard({ attempt, onClick, idx }: { attempt: { id: string; date: string; score: number; total: number; category: { name: string; slug: string } }; onClick: () => void; idx: number }) {
   const accuracy = Math.round((attempt.score / attempt.total) * 100);
@@ -39,7 +39,7 @@ function HistoryHeader({ total }: { total: number }) {
   return (
     <Paper withBorder p="lg" radius="lg" bg="white" mb="xl" className="animate-up">
       <Group>
-        <Box className="icon-box-44" bg="indigo">
+        <Box className="icon-box-44" bg="terracotta">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
           </svg>

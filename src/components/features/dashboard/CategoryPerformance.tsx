@@ -7,7 +7,7 @@ interface CategoryPerformanceProps {
   stats: CategoryStat[];
 }
 
-const BORDER_COLORS = ["#667eea", "#f59e0b", "#06b6d4", "#ec4899", "#3b82f6", "#8b5cf6", "#ef4444", "#10b981"];
+const BORDER_COLORS = ["#D97B4F", "#E8A87C", "#C4663C", "#A3502C", "#8B7355", "#B4B2A9", "#D3D1C7", "#888780"];
 
 export function CategoryPerformance({ stats }: CategoryPerformanceProps) {
   if (stats.length === 0) {

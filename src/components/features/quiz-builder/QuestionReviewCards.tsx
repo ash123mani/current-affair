@@ -58,7 +58,7 @@ export function QuestionReviewCards({ questions, selectedCount, onStartQuiz, onR
   return (
     <Paper withBorder p="xl" radius="lg" bg="white" mb="lg" ta="center" className="animate-up">
       <Box mb="md" className="progress-bar">
-        <Box className="progress-fill" style={{ width: `${progress}%`, background: "var(--mantine-color-indigo-5)" }} />
+        <Box className="progress-fill" style={{ width: `${progress}%`, background: "var(--mantine-color-terracotta-5)" }} />
       </Box>
 
       <Group justify="space-between" mb="md">
@@ -105,9 +105,9 @@ export function QuestionReviewCards({ questions, selectedCount, onStartQuiz, onR
                 key={oi}
                 withBorder p="sm" radius="md" className="option-card"
                 style={{
-                  borderColor: isSelected ? "var(--mantine-color-indigo-6)" : "var(--mantine-color-gray-3)",
+                  borderColor: isSelected ? "var(--mantine-color-terracotta-6)" : "var(--mantine-color-gray-3)",
                   borderWidth: isSelected ? 2 : 1,
-                  background: isSelected ? "var(--mantine-color-indigo-0)" : "var(--mantine-color-gray-0)",
+                  background: isSelected ? "var(--mantine-color-terracotta-0)" : "var(--mantine-color-gray-0)",
                   textAlign: "left",
                 }}
                 onClick={() => {
@@ -125,7 +125,7 @@ export function QuestionReviewCards({ questions, selectedCount, onStartQuiz, onR
                 <Group gap="sm" wrap="nowrap">
                   <div className="opt-circle-sm"
                     style={{
-                      background: isSelected ? "var(--mantine-color-indigo-6)" : "var(--mantine-color-gray-2)",
+                      background: isSelected ? "var(--mantine-color-terracotta-6)" : "var(--mantine-color-gray-2)",
                       color: isSelected ? "white" : "var(--mantine-color-gray-6)",
                     }}
                   >
@@ -133,7 +133,7 @@ export function QuestionReviewCards({ questions, selectedCount, onStartQuiz, onR
                   </div>
                   <Text size="sm" className="text-wrap-pretty">{opt}</Text>
                   {isSelected && (
-                    <Badge size="xs" variant="filled" color="indigo" ml="auto" className="flex-shrink-0">
+                    <Badge size="xs" variant="filled" color="terracotta" ml="auto" className="flex-shrink-0">
                       Selected
                     </Badge>
                   )}
@@ -185,7 +185,7 @@ export function QuestionReviewCards({ questions, selectedCount, onStartQuiz, onR
         <Button variant="light" color="gray" onClick={prev} disabled={index === 0}>← Previous</Button>
         {isLast ? (
           <Button
-            variant="gradient" gradient={{ from: "indigo", to: "violet", deg: 45 }}
+            variant="gradient" gradient={{ from: "terracotta", to: "terracotta", deg: 45 }}
             size="lg" onClick={saving ? undefined : onStartQuiz} loading={saving}
             style={{ opacity: saving ? 0.7 : 1 }}
             rightSection={saving ? undefined : (
@@ -197,7 +197,7 @@ export function QuestionReviewCards({ questions, selectedCount, onStartQuiz, onR
             {saving ? "Saving..." : `Start Quiz (${likedCount + bookmarkedCount + (questions.length - likedCount - bookmarkedCount - dislikedCount)} questions)`}
           </Button>
         ) : (
-          <Button variant="gradient" gradient={{ from: "indigo", to: "violet", deg: 45 }} onClick={next}>Next →</Button>
+          <Button variant="gradient" gradient={{ from: "terracotta", to: "terracotta", deg: 45 }} onClick={next}>Next →</Button>
         )}
       </Group>
 

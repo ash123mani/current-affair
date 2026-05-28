@@ -80,7 +80,7 @@ function GeneratedQuizContent() {
         onClick={allAnswered && !state.submitting ? actions.submit : undefined}
         loading={state.submitting}
         style={{ opacity: allAnswered ? 1 : 0.5 }}
-        variant="gradient" gradient={{ from: "indigo", to: "violet", deg: 45 }}
+        variant="filled" color="terracotta"
       >
         {state.submitting ? "Submitting..." : `Submit (${answeredCount}/${state.questions.length} answered)`}
       </Button>

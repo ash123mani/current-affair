@@ -27,7 +27,7 @@ export function DateStep({ date, onSetDate, onFetch }: { date: Date; onSetDate: 
         <DatePickerInput value={date} onChange={(v) => { if (v) onSetDate(new Date(v)); }} placeholder="Pick date" size="sm" radius="xl" w={140} />
       </Group>
       <Group>
-        <Button size="md" variant="gradient" gradient={{ from: "indigo", to: "violet", deg: 45 }} onClick={onFetch} ml="auto"
+        <Button size="md" variant="gradient" gradient={{ from: "terracotta", to: "terracotta", deg: 45 }} onClick={onFetch} ml="auto"
           rightSection={
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M5 12h14" /><path d="m12 5 7 7-7 7" />

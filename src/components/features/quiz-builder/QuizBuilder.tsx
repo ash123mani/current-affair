@@ -28,7 +28,7 @@ export function QuizBuilder() {
 
       {state.phase === "fetching" && (
         <Paper withBorder p="xl" radius="lg" bg="white" mb="lg" ta="center" className="animate-fade">
-          <Loader size="sm" color="indigo" mb="md" />
+          <Loader size="sm" color="terracotta" mb="md" />
           <Text size="sm" c="dimmed" fw={500}>Fetching articles from Indian news sources...</Text>
         </Paper>
       )}
