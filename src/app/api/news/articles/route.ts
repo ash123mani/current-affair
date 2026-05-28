@@ -1,26 +1,34 @@
 import { NextRequest } from "next/server";
-import { newsService } from "@/lib/services/generator/news.service";
+import { indianNewsService } from "@/lib/services/generator/indian-news.service";
 import { ok, err } from "@/lib/api-response";
 
 export const dynamic = "force-dynamic";
+export const maxDuration = 60;
 
 export async function GET(request: NextRequest) {
   try {
-    const country = request.nextUrl.searchParams.get("country") || "in";
-    const sources = request.nextUrl.searchParams.get("sources");
-    const fromDate = request.nextUrl.searchParams.get("from");
-    const toDate = request.nextUrl.searchParams.get("to");
-    const sourceList = sources ? sources.split(",").filter(Boolean) : [];
-
-    if (sourceList.length === 0) {
-      return ok({ articles: [] });
+    const date = request.nextUrl.searchParams.get("date");
+    if (!date) {
+      return ok({ categories: {} });
     }
 
-    const articles = fromDate && toDate
-      ? await newsService.fetchBySourcesWithDate(sourceList, fromDate, toDate)
-      : await newsService.fetchBySources(sourceList);
+    const hasArticles = await indianNewsService.hasArticlesForDate(date);
 
-    return ok({ articles });
+    if (!hasArticles) {
+      const inserted = await indianNewsService.fetchArticlesForDate(date);
+      if (inserted === 0) {
+        return ok({ categories: {}, note: "No articles found for this date. Try a recent date." });
+      }
+    }
+
+    const articles = await indianNewsService.getArticlesForDate(date);
+    const categories: Record<string, unknown[]> = {};
+    for (const article of articles) {
+      const cat = article.category || "general";
+      (categories[cat] ??= []).push(article);
+    }
+
+    return ok({ categories });
   } catch (error) {
     return err(error);
   }

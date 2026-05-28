@@ -1,36 +1,29 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+"use client";
+
+import { useEffect, useCallback } from "react";
 import { api } from "@/lib/api/client";
-import type { AttemptResponse } from "@/types/api";
+import { useAsync } from "@/hooks/use-async";
+import type { AttemptResponse, PaginatedResponse } from "@/types/api";
 
-export function useQuizHistory(category?: string) {
-  const [attempts, setAttempts] = useState<AttemptResponse[]>([]);
-  const [total, setTotal] = useState(0);
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [loading, setLoading] = useState(true);
-  const categoryRef = useRef(category);
+export function useQuizHistory(category?: string, page: number = 1) {
+  const { data, loading, run } = useAsync<PaginatedResponse<AttemptResponse>>();
 
-  const fetch = useCallback(async (p: number, cat?: string) => {
-    setLoading(true);
-    try {
-      const data = await api.quiz.history(p, cat);
-      setAttempts(data.data);
-      setTotal(data.total);
-      setTotalPages(data.totalPages);
-    } catch {
-      // ignore
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    categoryRef.current = category;
-  }, [category]);
+  const fetch = useCallback(
+    (p: number, cat?: string) => {
+      run(() => api.quiz.history(p, cat));
+    },
+    [run]
+  );
 
   useEffect(() => {
     fetch(page, category);
   }, [page, category, fetch]);
 
-  return { attempts, total, page, totalPages, loading, setPage };
+  return {
+    attempts: data?.data ?? [],
+    total: data?.total ?? 0,
+    totalPages: data?.totalPages ?? 1,
+    page,
+    loading,
+  };
 }

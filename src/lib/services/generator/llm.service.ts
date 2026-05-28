@@ -5,6 +5,8 @@ export interface GeneratedQuestion {
   options: string[];
   correctIndex: number;
   explanation: string;
+  articleTitle?: string;
+  articleUrl?: string;
 }
 
 export interface LLMServiceConfig {
@@ -20,30 +22,33 @@ export class LLMService {
   constructor(config: LLMServiceConfig = {}) {
     const key = process.env.NVIDIA_API_KEY;
     if (!key) {
-      console.warn("[LLMService] NVIDIA_API_KEY not set. Using mock generator.");
+      console.warn("[LLMService] NVIDIA_API_KEY not set.");
       this.client = null;
     } else {
       this.client = new OpenAI({
         apiKey: key,
         baseURL: "https://integrate.api.nvidia.com/v1",
-        timeout: 30000,
+        timeout: 60000,
       });
     }
-    this.model = config.model ?? "mistralai/mistral-7b-instruct-v0.3";
+    this.model = config.model ?? "meta/llama-4-maverick-17b-128e-instruct";
     this.maxRetries = config.maxRetries ?? 1;
+  }
+
+  private requireClient(): OpenAI {
+    if (!this.client) {
+      throw new Error("NVIDIA_API_KEY environment variable is not set — cannot generate questions");
+    }
+    return this.client;
   }
 
   async generateQuestions(
     categoryName: string,
     date: string,
-    articles: { title: string; description: string; source: string }[],
+    articles: { title: string; description: string; content?: string; source: string }[],
     count: number = 3
   ): Promise<GeneratedQuestion[]> {
-    if (!this.client) {
-      return this.mockGenerate(categoryName, articles, count);
-    }
-
-    const topArticles = articles.slice(0, 5);
+    const topArticles = articles.slice(0, 10);
     const prompt = this.buildPrompt(categoryName, date, topArticles, count);
 
     for (let attempt = 0; attempt <= this.maxRetries; attempt++) {
@@ -54,59 +59,164 @@ export class LLMService {
           return parsed;
         }
       } catch (error) {
-        if (attempt === this.maxRetries) throw error;
-        console.warn(`[LLMService] Attempt ${attempt + 1} failed, retrying...`);
+        console.warn(`[LLMService] Attempt ${attempt + 1} failed:`, error);
+        if (attempt === this.maxRetries) {
+          throw new Error(`LLM generation failed after ${this.maxRetries + 1} attempts: ${error instanceof Error ? error.message : "Unknown error"}`);
+        }
       }
     }
 
-    throw new Error("Failed to generate valid questions after retries");
+    throw new Error("LLM generation failed");
+  }
+
+  async generateQuestionsBatched(
+    categoryName: string,
+    date: string,
+    articles: { title: string; description: string; content?: string; source: string; url: string }[],
+    batchSize: number = 5,
+    onBatch?: (questions: GeneratedQuestion[]) => void
+  ): Promise<GeneratedQuestion[]> {
+    const all: GeneratedQuestion[] = [];
+    const batches: { title: string; description: string; content?: string; source: string; url: string }[][] = [];
+
+    for (let i = 0; i < articles.length; i += batchSize) {
+      batches.push(articles.slice(i, i + batchSize));
+    }
+
+    await Promise.all(
+      batches.map(async (batch) => {
+        const questions = await this.generateQuestions(categoryName, date, batch, batch.length * 2);
+        const tagged = questions.map((q) => {
+          const article = this.findBestArticle(q, batch);
+          return { ...q, articleTitle: article?.title, articleUrl: article?.url };
+        });
+        all.push(...tagged);
+        onBatch?.(tagged);
+      })
+    );
+
+    return all;
+  }
+
+  private findBestArticle(
+    question: GeneratedQuestion,
+    batch: { title: string; description: string; content?: string; source: string; url: string }[]
+  ): { title: string; url: string } | null {
+    if (batch.length === 1) return { title: batch[0].title, url: batch[0].url };
+
+    const qWords = new Set(question.text.toLowerCase().split(/\s+/).filter((w) => w.length > 3));
+    let best = batch[0];
+    let bestScore = 0;
+
+    for (const article of batch) {
+      const aWords = (article.title + " " + (article.description ?? "")).toLowerCase();
+      let score = 0;
+      for (const word of qWords) {
+        if (aWords.includes(word)) score++;
+      }
+      if (score > bestScore) {
+        bestScore = score;
+        best = article;
+      }
+    }
+
+    return { title: best.title, url: best.url };
   }
 
   private buildPrompt(
     category: string,
-    date: string,
-    articles: { title: string; description: string; source: string }[],
+    _date: string,
+    articles: { title: string; description: string; content?: string; source: string }[],
     count: number
   ): string {
     const articlesText = articles
-      .map((a) => `- ${a.title}${a.description ? `: ${a.description}` : ""} (${a.source})`)
-      .join("\n");
+      .map((a) => `- Title: ${a.title}\n  Context: ${a.description || "No additional context"}\n  Content: ${a.content || "No full content available"} (Source: ${a.source})`)
+      .join("\n\n");
 
-    return `You are a UPSC/SSC exam question paper setter. Generate ${count} multiple-choice questions for "${category}" category. Date: ${date}. Use ONLY the articles below.
+    return `You are an expert quiz setter for Indian competitive examinations (UPSC, SSC, Banking, Railway, State PSC). Generate ${count} high-quality general-knowledge multiple-choice questions INSPIRED by the articles below.
 
-Rules:
-- Ask about the WHAT, WHY, or SIGNIFICANCE of each event — not trivial recall of names, dates, or numbers
-- Each question: 4 options, 3 plausible distractors + 1 correct answer
-- Wrong options must mislead someone who only skimmed the headline
-- Correct answer must be definitively supported by the article
-- Frame like real UPSC Prelims / SSC CGL: clear stem, concise options, no ambiguity
-- Explanation: 2-3 sentences — why correct is right AND why each distractor is wrong
+CRITICAL: Questions must be SELF-CONTAINED — no dates, no "recently" / "in a landmark judgment" / "according to a new study" references. Test permanent knowledge drawn from the article's topic.
 
-Articles:
+QUESTION STRUCTURE RULES:
+1. Stem (the question text) must be a complete, answerable sentence — not a fill-in-the-blank. The stem alone should give enough context to understand what is being asked.
+2. All 4 options must be the SAME TYPE and SIMILAR LENGTH — all nouns, all statements, all policy names, etc. Unequal length reveals the answer.
+3. Each wrong option (distractor) must be a SPECIFIC, CONCRETE claim that sounds reasonable to someone familiar with the subject — never "none of the above", "all of the above", or vague dismissals like "this contradicts known facts".
+4. The correct answer must be DEFINTIVELY supported by the article content. Distractors should be invented but plausible within the same domain.
+
+DISTRACTOR QUALITY CHECKLIST (apply to every question):
+- Would a student who studied this topic find the wrong options tempting? [YES/NO]
+- Is each wrong option a complete, specific statement rather than a vague judgment? [YES/NO]
+- Do all options have similar grammatical structure? [YES/NO]
+- Could each wrong option conceivably be true in a different context? [YES/NO]
+
+EXAMPLES OF GOOD vs POOR QUESTIONS:
+
+POOR (what NOT to do):
+Article: "Supreme Court holds in-laws cannot be prosecuted for dowry cruelty merely because they lived jointly"
+Bad Q: "What did the Supreme Court rule about in-laws?"
+Bad options: ["They cannot be prosecuted merely for living jointly", "This is speculative", "This is minor", "This contradicts known facts"]
+Why bad: Options 2-4 are vague placeholders, not real claims.
+
+GOOD (what TO do):
+Article: "Supreme Court holds in-laws cannot be prosecuted for dowry cruelty merely because they lived jointly"
+Good Q: "Under which legal principle did the Supreme Court rule that in-laws cannot be held liable for dowry harassment solely on the basis of shared residence?"
+Good options: [
+  "Principle of actus reus — mere presence does not constitute active participation in an offense",
+  "Principle of vicarious liability — family members are automatically liable for acts within the household",
+  "Principle of joint family responsibility — all adult members share legal culpability for domestic offenses",
+  "Principle of reversed burden — the accused must prove their innocence in dowry-related cases"
+]
+Correct: 0 (actus reus)
+
+ANOTHER GOOD EXAMPLE:
+Article: "RBI keeps repo rate unchanged at 6.5% for the fifth consecutive time"
+Good Q: "A central bank's decision to maintain the repo rate over multiple consecutive meetings is primarily aimed at:"
+Good options: [
+  "Anchoring inflation expectations while supporting continued economic growth",
+  "Encouraging commercial banks to reduce their lending rates for retail borrowers",
+  "Decreasing the money supply to curb excessive speculative activity in equity markets",
+  "Aligning domestic interest rates with the US Federal Reserve's monetary policy stance"
+]
+Correct: 0
+
+ANOTHER GOOD EXAMPLE:
+Article: "ISRO successfully tests crew escape system for Gaganyaan mission"
+Good Q: "The Crew Escape System tested by ISRO for the Gaganyaan mission is designed to:"
+Good options: [
+  "Detach the crew module from the launch vehicle within milliseconds of a anomaly and parachute it to safety",
+  "Provide emergency life support to astronauts for up to 72 hours in the event of cabin depressurization",
+  "Enable manual override of the automated docking sequence during orbital rendezvous maneuvers",
+  "Eject the payload fairing at a lower altitude than nominal to reduce splashdown velocity"
+]
+Correct: 0
+
+RULE ENFORCEMENT - You MUST follow this EXACT output format. Every question MUST have the "text", "options" (array of 4 strings), "correctIndex" (0-3), and "explanation" fields. No markdown, no code fences.
+
+Articles to draw from:
 ${articlesText}
 
-Return ONLY a valid JSON array (no markdown):
+Generate exactly ${count} questions. Return ONLY a valid JSON array:
 [
   {
     "text": "question text",
     "options": ["A", "B", "C", "D"],
     "correctIndex": 0,
-    "explanation": "explanation"
+    "explanation": "Why correct is right and why each distractor is wrong (2-3 sentences)"
   }
 ]`;
   }
 
   private async callLLM(prompt: string, maxTokens: number = 2048): Promise<string> {
-    const completion = await this.client!.chat.completions.create({
+    const completion = await this.requireClient().chat.completions.create({
       model: this.model,
       messages: [
         {
           role: "system",
-          content: "You generate current affairs quiz questions from news articles. Return only valid JSON.",
+          content: "You are an expert quiz setter for Indian competitive exams (UPSC, SSC, Banking). You generate general-knowledge multiple-choice questions inspired by current affairs articles. Every question must have 4 specific, plausible options of similar length and type — no vague placeholders. No dates or current-event references in questions. Return only valid JSON arrays — no markdown, no commentary.",
         },
         { role: "user", content: prompt },
       ],
-      temperature: 0.1,
+      temperature: 0.3,
       max_tokens: maxTokens,
     });
 
@@ -130,6 +240,8 @@ Return ONLY a valid JSON array (no markdown):
       options: Array.isArray(q.options) ? q.options.map(String) : [],
       correctIndex: Number(q.correctIndex) ?? 0,
       explanation: String(q.explanation ?? ""),
+      articleTitle: q.articleTitle ? String(q.articleTitle) : undefined,
+      articleUrl: q.articleUrl ? String(q.articleUrl) : undefined,
     }));
   }
 
@@ -150,53 +262,51 @@ Return ONLY a valid JSON array (no markdown):
   async generateSingleQuestion(
     categoryName: string,
     date: string,
-    article: { title: string; description: string; source: string }
+    article: { title: string; description: string; content?: string; source: string }
   ): Promise<GeneratedQuestion> {
-    if (!this.client) {
-      return this.mockGenerate(categoryName, [article], 1)[0];
-    }
-
     const prompt = this.buildSinglePrompt(categoryName, date, article);
 
     for (let attempt = 0; attempt <= this.maxRetries; attempt++) {
       try {
-        const result = await this.callLLM(prompt, 1024);
+        const result = await this.callLLM(prompt, 1536);
         const parsed = this.parseSingleResponse(result);
         if (this.validateSingleQuestion(parsed)) {
           return parsed;
         }
       } catch (error) {
-        if (attempt === this.maxRetries) throw error;
-        console.warn(`[LLMService] Attempt ${attempt + 1} failed, retrying...`);
+        console.warn(`[LLMService] Attempt ${attempt + 1} failed:`, error);
+        if (attempt === this.maxRetries) {
+          throw new Error(`LLM single question generation failed after ${this.maxRetries + 1} attempts: ${error instanceof Error ? error.message : "Unknown error"}`);
+        }
       }
     }
 
-    throw new Error("Failed to generate valid question after retries");
+    throw new Error("LLM single question generation failed");
   }
 
   private buildSinglePrompt(
     category: string,
-    date: string,
-    article: { title: string; description: string; source: string }
+    _date: string,
+    article: { title: string; description: string; content?: string; source: string }
   ): string {
-    return `You are a UPSC/SSC exam question paper setter. Craft one high-quality multiple-choice question from this news article.
+    return `You are an expert quiz setter for Indian competitive examinations. Craft a general-knowledge multiple-choice question INSPIRED by this article.
 
-Context: Generate exactly 1 question for "${category}" category. Date: ${date}. Use ONLY this article:
+Use ONLY this article:
 
 Title: ${article.title}
-Description: ${article.description || "N/A"}
+Context: ${article.description || "N/A"}
+Content: ${article.content || "N/A"}
 Source: ${article.source}
 
-Instructions:
-- Ask about the WHAT, WHY, or SIGNIFICANCE of the event — not trivial details like names, dates, or numbers
-- Write 4 options where 3 are plausible distractors. Each wrong option must sound reasonable to someone who only skimmed the news
+QUESTION STRUCTURE RULES:
+- The question must be SELF-CONTAINED — no dates, no "recently" or "according to a study" references
+- Stem must be a complete, answerable sentence (not fill-in-the-blank)
+- All 4 options must be the SAME TYPE and SIMILAR LENGTH — all nouns / all policy statements / all mechanisms
+- Each wrong option must be a SPECIFIC, CONCRETE claim that sounds reasonable in this domain — never vague
 - The correct answer must be definitively supported by the article
-- Frame it like a real UPSC Prelims or SSC CGL question: clear stem, concise options, no ambiguity
-- Explanation: 2-3 sentences explaining WHY the correct answer is right and WHY each distractor is wrong
+- Explanation: 2-3 sentences — why correct is right AND why each distractor is wrong
 
-Format requirements:
-- Exactly 4 options (indices 0-3)
-- Return ONLY valid JSON, no markdown, no commentary
+If the article is rich enough, generate up to 2 questions. Return ONLY valid JSON, no markdown.
 
 {
   "text": "question text",
@@ -235,40 +345,6 @@ Format requirements:
       q.correctIndex <= 3 &&
       q.explanation.length > 5
     );
-  }
-
-  private mockGenerate(
-    categoryName: string,
-    articles: { title: string; description: string; source: string }[],
-    _count: number
-  ): GeneratedQuestion[] {
-    if (articles.length === 0) {
-      return [
-        {
-          text: `Which of the following best describes a major recent development in ${categoryName}?`,
-          options: [
-            `A landmark policy change in ${categoryName}`,
-            `A breakthrough innovation in ${categoryName}`,
-            `A significant diplomatic or economic shift in ${categoryName}`,
-            `A major event reshaping ${categoryName} globally`,
-          ],
-          correctIndex: 0,
-          explanation: `Recent reporting highlights a transformative development in ${categoryName}, with implications that extend beyond the sector itself. The other options, while plausible, do not capture the specific breakthrough that was widely reported.`,
-        },
-      ];
-    }
-
-    return articles.slice(0, _count).map((article) => ({
-      text: `Based on recent reporting, what is the key takeaway from the following development: "${article.title}"?`,
-      options: [
-        `${article.description || `This development was confirmed by ${article.source} and marks a significant shift.`}`,
-        `This is a speculative claim with no official confirmation`,
-        `This is a routine update with no major implications`,
-        `This report contradicts established facts in the field`,
-      ],
-      correctIndex: 0,
-      explanation: `According to ${article.source}, ${article.description || `this development represents a notable event in ${categoryName}. The other options misrepresent the nature of the report — it was a confirmed, significant development, not speculative or routine.`}`,
-    }));
   }
 }
 

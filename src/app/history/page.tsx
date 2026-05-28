@@ -1,16 +1,15 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useCallback, Suspense } from "react";
 import { Container, Title, Text, Paper, Badge, Group, Pagination, SimpleGrid, Box, Chip } from "@mantine/core";
 import { useQuizHistory } from "@/hooks/use-quiz-history";
+import { useCategories } from "@/hooks/use-categories";
 import { LoadingState } from "@/components/ui/LoadingState";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ACCURACY_THRESHOLD } from "@/constants";
-import { api } from "@/lib/api/client";
-import type { CategoryModel } from "@/types/models";
 
-const BORDER_COLORS = ["#667eea", "#f59e0b", "#06b6d4", "#ec4899", "#3b82f6", "#8b5cf6", "#ef4444", "#10b981"];
+const BORDER_COLORS = ["#4f46e5", "#f59e0b", "#06b6d4", "#ec4899", "#3b82f6", "#8b5cf6", "#ef4444", "#10b981"];
 
 function HistoryCard({ attempt, onClick, idx }: { attempt: { id: string; date: string; score: number; total: number; category: { name: string; slug: string } }; onClick: () => void; idx: number }) {
   const accuracy = Math.round((attempt.score / attempt.total) * 100);
@@ -18,20 +17,13 @@ function HistoryCard({ attempt, onClick, idx }: { attempt: { id: string; date: s
   const borderColor = BORDER_COLORS[idx % BORDER_COLORS.length];
 
   return (
-    <Paper
-      withBorder
-      p="lg"
-      radius="lg"
-      bg="white"
-      className="card-hover animate-up"
+    <Paper withBorder p="lg" radius="lg" bg="white" className="card-hover animate-up"
       style={{ cursor: "pointer", borderLeft: `4px solid ${borderColor}` }}
       onClick={onClick}
     >
       <Group justify="space-between" mb="sm">
         <Text size="xs" c="dimmed" fw={600} tt="uppercase">{attempt.date}</Text>
-        <Badge size="md" color={passed ? "green" : "red"} variant="light" radius="sm">
-          {accuracy}%
-        </Badge>
+        <Badge size="md" color={passed ? "green" : "red"} variant="light" radius="sm">{accuracy}%</Badge>
       </Group>
       <Text fw={700} size="md" mb="xs">{attempt.category.name}</Text>
       <Group gap={6}>
@@ -43,19 +35,47 @@ function HistoryCard({ attempt, onClick, idx }: { attempt: { id: string; date: s
   );
 }
 
-export default function HistoryPage() {
+function HistoryHeader({ total }: { total: number }) {
+  return (
+    <Paper withBorder p="lg" radius="lg" bg="white" mb="xl" className="animate-up">
+      <Group>
+        <Box className="icon-box-44" bg="indigo">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
+          </svg>
+        </Box>
+        <Box flex={1}>
+          <Title order={3}>Quiz History</Title>
+          <Text c="dimmed" size="sm">{total} attempt{total !== 1 ? "s" : ""} total</Text>
+        </Box>
+      </Group>
+    </Paper>
+  );
+}
+
+function HistoryContent() {
   const router = useRouter();
-  const [categories, setCategories] = useState<CategoryModel[]>([]);
-  const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
-  const { attempts, total, page, totalPages, loading, setPage } = useQuizHistory(categoryFilter ?? undefined);
+  const searchParams = useSearchParams();
+  const categoryParam = searchParams.get("category");
+  const pageParam = parseInt(searchParams.get("page") ?? "1", 10);
+  const { categories } = useCategories();
+  const { attempts, total, page, totalPages, loading } = useQuizHistory(categoryParam ?? undefined, pageParam);
 
-  useEffect(() => {
-    api.categories.list().then(setCategories);
-  }, []);
+  const setFilter = useCallback((cat: string | null) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (cat) params.set("category", cat);
+    else params.delete("category");
+    params.set("page", "1");
+    router.push(`/history?${params.toString()}`);
+  }, [router, searchParams]);
 
-  if (loading && !attempts.length) {
-    return <LoadingState message="Loading history..." />;
-  }
+  const setPage = useCallback((p: number) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("page", String(p));
+    router.push(`/history?${params.toString()}`);
+  }, [router, searchParams]);
+
+  if (loading && !attempts.length) return <LoadingState message="Loading history..." />;
 
   if (!attempts.length && !loading) {
     return (
@@ -70,29 +90,10 @@ export default function HistoryPage() {
 
   return (
     <Container size="md" py="xl">
-      <Paper withBorder p="lg" radius="lg" bg="white" mb="xl" className="animate-up" style={{ borderLeft: "4px solid #667eea" }}>
-        <Group>
-          <div style={{
-            width: 44, height: 44, borderRadius: 12,
-            background: "linear-gradient(135deg, #667eea, #764ba2)",
-            display: "flex", alignItems: "center", justifyContent: "center",
-          }}>
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
-            </svg>
-          </div>
-          <Box style={{ flex: 1 }}>
-            <Title order={3}>Quiz History</Title>
-            <Text c="dimmed" size="sm">{total} attempt{total !== 1 ? "s" : ""} total</Text>
-          </Box>
-        </Group>
-      </Paper>
+      <HistoryHeader total={total} />
 
       <Group mb="lg" className="animate-fade">
-        <Chip.Group multiple={false} value={categoryFilter || "all"} onChange={(v) => {
-          setCategoryFilter(v === "all" ? null : v);
-          setPage(1);
-        }}>
+        <Chip.Group multiple={false} value={categoryParam || "all"} onChange={(v) => setFilter(v === "all" ? null : v)}>
           <Group gap={6}>
             <Chip value="all" size="sm" radius="xl">All</Chip>
             {categories.map((c) => (
@@ -114,5 +115,13 @@ export default function HistoryPage() {
         </Group>
       )}
     </Container>
+  );
+}
+
+export default function HistoryPage() {
+  return (
+    <Suspense fallback={<LoadingState message="Loading history..." />}>
+      <HistoryContent />
+    </Suspense>
   );
 }

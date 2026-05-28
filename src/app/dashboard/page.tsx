@@ -45,7 +45,7 @@ export default function DashboardPage() {
               <Title order={3}>Your Dashboard</Title>
               <Text c="dimmed" size="sm">Track your quiz performance and progress</Text>
             </Box>
-            <Badge variant="light" color="violet" size="lg">
+            <Badge variant="light" color="indigo" size="lg">
               {stats.totalQuizzes} quiz{stats.totalQuizzes > 1 ? "zes" : ""}
             </Badge>
           </Group>

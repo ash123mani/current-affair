@@ -10,7 +10,7 @@ export function LoadingState({ message = "Loading..." }: LoadingStateProps) {
       <Paper withBorder p="xl" radius="lg" bg="white">
         <Center>
           <Stack align="center" gap="md">
-            <Loader color="violet" />
+            <Loader color="indigo" />
             <Text c="dimmed" size="sm">{message}</Text>
           </Stack>
         </Center>

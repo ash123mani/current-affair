@@ -1,47 +1,63 @@
-"use client";
-
 import { Container, Title, Text, Badge, Box } from "@mantine/core";
 import { QuizBuilder } from "@/components/features/quiz-builder/QuizBuilder";
+
+function HeroBackground() {
+  return (
+    <Box pos="absolute" inset={0} style={{ overflow: "hidden", pointerEvents: "none" }}>
+      <div className="hero-blob animate-blob"
+        style={{ top: "-20%", right: "-10%", width: "40%", height: "80%", animationDuration: "18s",
+          background: "linear-gradient(135deg, rgba(79,70,229,0.12), rgba(99,102,241,0.06))" }}
+      />
+      <div className="hero-blob"
+        style={{ bottom: "-30%", left: "-10%", width: "35%", height: "60%", animationDelay: "-4s",
+          background: "linear-gradient(135deg, rgba(245,158,11,0.08), rgba(251,191,36,0.04))" }}
+      />
+      <div className="hero-particle animate-float-slow"
+        style={{ top: "15%", right: "20%", width: 4, height: 4, background: "rgba(79,70,229,0.2)", animationDuration: "7s" }}
+      />
+      <div className="hero-particle animate-float"
+        style={{ top: "60%", left: "15%", width: 3, height: 3, background: "rgba(245,158,11,0.2)", animationDuration: "6s", animationDelay: "-2s" }}
+      />
+      <div className="hero-particle animate-float-slow"
+        style={{ top: "30%", left: "30%", width: 2, height: 2, background: "rgba(79,70,229,0.15)", animationDuration: "9s", animationDelay: "-5s" }}
+      />
+    </Box>
+  );
+}
 
 export default function HomePage() {
   return (
     <>
-      {/* Hero */}
-      <Box
+      <Box className="hero-container"
         style={{
-          background: "linear-gradient(135deg, #667eea 0%, #764ba2 40%, #f093fb 100%)",
-          paddingTop: 64,
-          paddingBottom: 80,
-          marginBottom: -40,
-          position: "relative",
-          overflow: "hidden",
+          background: "linear-gradient(135deg, #f8f9ff 0%, #f0f2ff 50%, #fefce8 100%)",
+          borderBottom: "1px solid rgba(0,0,0,0.04)",
         }}
       >
-        <Container size="lg">
+        <HeroBackground />
+        <Container size="lg" pos="relative" style={{ zIndex: 1 }}>
           <Box ta="center" maw={640} mx="auto">
-            <Badge
-              variant="white"
-              size="lg"
-              mb="md"
-              style={{ textTransform: "none", fontWeight: 500 }}
+            <Badge variant="light" color="indigo" size="lg" mb="md"
+              className="badge-hero"
+              style={{ border: "1px solid rgba(79,70,229,0.1)" }}
             >
-              Current Affairs · Daily Quiz Generator
+              India's Daily Current Affairs Quiz
             </Badge>
-            <Title
-              order={1}
-              c="white"
-              mb="sm"
-              style={{ fontSize: "clamp(32px, 5vw, 52px)", lineHeight: 1.15, letterSpacing: "-0.03em" }}
+            <Title order={1} c="gray.9" mb="sm"
+              fz="clamp(32px, 5vw, 52px)"
+              style={{ lineHeight: 1.12, letterSpacing: "-0.03em" }}
             >
-              Generate quizzes from live news
+              Your daily{" "}
+              <Text component="span" variant="gradient" gradient={{ from: "indigo", to: "violet", deg: 90 }} inherit span>
+                news quiz
+              </Text>
+              {" "}generator
             </Title>
-            <Text c="white" size="lg" opacity={0.85} mb="lg" style={{ lineHeight: 1.6 }}>
-              Pick a country, choose newspapers and a topic — AI generates a quiz from today&apos;s headlines.
+            <Text c="gray.6" size="lg" mb="lg" style={{ lineHeight: 1.7, fontWeight: 450 }}>
+              Pick a date to fetch articles from top Indian news sources, choose what to study, and let AI build a quiz for you.
             </Text>
           </Box>
         </Container>
-        <div style={{ position: "absolute", top: "-60px", right: "-80px", width: 300, height: 300, borderRadius: "50%", background: "rgba(255,255,255,0.06)", pointerEvents: "none" }} />
-        <div style={{ position: "absolute", bottom: "-40px", left: "-40px", width: 200, height: 200, borderRadius: "50%", background: "rgba(255,255,255,0.04)", pointerEvents: "none" }} />
       </Box>
 
       <Container size="lg" pb="xl">

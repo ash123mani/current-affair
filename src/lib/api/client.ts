@@ -2,19 +2,11 @@ import { API_ROUTES } from "@/constants";
 import type {
   ApiError,
   QuestionResponse,
-  AdminQuestionResponse,
   AttemptDetailResponse,
   AttemptResponse,
   DashboardStats,
   QuizResult,
   SignupInput,
-  CreateQuestionInput,
-  NewsSource,
-  GenerateQuizResponse,
-  PopulateResult,
-  NewsFeedCategory,
-  GenerateFromArticleResponse,
-  SaveDraftResponse,
   HomeData,
 } from "@/types/api";
 import type { CategoryModel } from "@/types/models";
@@ -25,7 +17,7 @@ type RequestOptions = {
   params?: Record<string, string>;
 };
 
-class ApiClientError extends Error {
+export class ApiClientError extends Error {
   constructor(
     public status: number,
     public code: string | undefined,
@@ -69,15 +61,10 @@ export const api = {
   },
 
   news: {
-    sources: (country?: string) =>
-      request<{ sources: NewsSource[] }>(API_ROUTES.NEWS_SOURCES, {
-        params: country ? { country } : {},
-      }),
-
-    articles: (country: string, sources: string[], fromDate?: string, toDate?: string) =>
-      request<{ articles: { title: string; description: string; source: string; url: string; publishedAt: string }[] }>(
+    articles: (date: string) =>
+      request<{ categories: Record<string, { title: string; description: string; content?: string; source: string; url: string; publishedAt: string; imageUrl?: string }[]>; note?: string }>(
         API_ROUTES.NEWS_ARTICLES,
-        { params: { country, sources: sources.join(","), ...(fromDate ? { from: fromDate } : {}), ...(toDate ? { to: toDate } : {}) } }
+        { params: { date } }
       ),
   },
 
@@ -117,11 +104,66 @@ export const api = {
 
     stats: () => request<DashboardStats>(API_ROUTES.QUIZ_STATS),
 
-    generate: (articles: { title: string; description: string; source: string }[], category: string, date?: string) =>
-      request<GenerateQuizResponse>(API_ROUTES.QUIZ_GENERATE, {
+    generate: (articles: { title: string; description: string; content?: string; source: string; url: string }[], category: string, date?: string) =>
+      request<{ questions: { text: string; options: string[]; correctIndex: number; explanation: string }[] }>(
+        API_ROUTES.QUIZ_GENERATE,
+        { method: "POST", body: { articles, category, date } }
+      ),
+
+    saveQuestions: (category: string, date: string, questions: { text: string; options: string[]; correctIndex: number; explanation?: string; articleTitle?: string; articleUrl?: string }[]) =>
+      request<{ questions: { id: string; text: string }[]; count: number; date: string; category: string }>(
+        `${API_ROUTES.QUIZ_SAVE_QUESTIONS}`,
+        { method: "POST", body: { category, date, questions } }
+      ),
+
+    generateStream: (
+      articles: { title: string; description: string; content?: string; source: string; url: string }[],
+      category: string,
+      date?: string,
+      onBatch?: (batch: { questions: import("@/lib/services/generator/llm.service").GeneratedQuestion[]; totalQuestions: number }) => void,
+      onDone?: (questions: import("@/lib/services/generator/llm.service").GeneratedQuestion[]) => void,
+      onError?: (error: string) => void
+    ) => {
+      const controller = new AbortController();
+
+      fetch(API_ROUTES.QUIZ_GENERATE_STREAM, {
         method: "POST",
-        body: { articles, category, date },
-      }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ articles, category, date }),
+        signal: controller.signal,
+      })
+        .then(async (res) => {
+          const reader = res.body?.getReader();
+          if (!reader) return;
+          const decoder = new TextDecoder();
+          let buffer = "";
+
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            buffer += decoder.decode(value, { stream: true });
+            const lines = buffer.split("\n");
+            buffer = lines.pop() ?? "";
+
+            for (const line of lines) {
+              if (!line.startsWith("data: ")) continue;
+              try {
+                const data = JSON.parse(line.slice(6));
+                if (data.type === "batch" && data.questions) {
+                  onBatch?.({ questions: data.questions, totalQuestions: data.totalQuestions });
+                } else if (data.type === "done" && data.questions) {
+                  onDone?.(data.questions);
+                } else if (data.type === "error") {
+                  onError?.(data.error);
+                }
+              } catch { /* skip malformed */ }
+            }
+          }
+        })
+        .catch((e) => onError?.(e.message));
+
+      return () => controller.abort();
+    },
   },
 
   auth: {
@@ -130,103 +172,5 @@ export const api = {
         method: "POST",
         body: input,
       }),
-  },
-
-  admin: {
-    questions: {
-      list: (category?: string, date?: string) =>
-        request<AdminQuestionResponse[]>(API_ROUTES.ADMIN_QUESTIONS, {
-          params: { ...(category ? { category } : {}), ...(date ? { date } : {}) },
-        }),
-
-      create: (input: CreateQuestionInput) =>
-        request<AdminQuestionResponse>(API_ROUTES.ADMIN_QUESTIONS, {
-          method: "POST",
-          body: input,
-        }),
-
-      update: (id: string, input: Partial<CreateQuestionInput>) =>
-        request<AdminQuestionResponse>(`${API_ROUTES.ADMIN_QUESTIONS}/${id}`, {
-          method: "PUT",
-          body: input,
-        }),
-
-      publish: (id: string) =>
-        request<AdminQuestionResponse>(`${API_ROUTES.ADMIN_QUESTIONS}/publish`, {
-          method: "POST",
-          body: { id, action: "publish" },
-        }),
-
-      delete: (id: string) =>
-        request<void>(`${API_ROUTES.ADMIN_QUESTIONS}/${id}`, {
-          method: "DELETE",
-        }),
-    },
-
-    categories: {
-      list: () => request<CategoryModel[]>(API_ROUTES.ADMIN_CATEGORIES),
-
-      create: (input: { name: string; slug: string; icon?: string; color?: string }) =>
-        request<CategoryModel>(API_ROUTES.ADMIN_CATEGORIES, {
-          method: "POST",
-          body: input,
-        }),
-
-      update: (id: string, input: { name?: string; slug?: string; icon?: string; color?: string }) =>
-        request<CategoryModel>(`${API_ROUTES.ADMIN_CATEGORIES}/${id}`, {
-          method: "PUT",
-          body: input,
-        }),
-
-      delete: (id: string) =>
-        request<void>(`${API_ROUTES.ADMIN_CATEGORIES}/${id}`, {
-          method: "DELETE",
-        }),
-    },
-
-    newsFeed: (country?: string) =>
-      request<{ categories: NewsFeedCategory[] }>(API_ROUTES.ADMIN_NEWS_FEED, {
-        params: country ? { country } : {},
-      }),
-
-    generateFromArticle: (article: {
-      categorySlug: string;
-      categoryName?: string;
-      title: string;
-      description?: string;
-      source?: string;
-      date?: string;
-    }) =>
-      request<GenerateFromArticleResponse>(API_ROUTES.ADMIN_GENERATE_FROM_ARTICLE, {
-        method: "POST",
-        body: article,
-      }),
-
-    saveDraft: (data: {
-      categorySlug: string;
-      date?: string;
-      text: string;
-      options: string[];
-      correctIndex: number;
-      explanation?: string;
-      source?: string;
-    }) =>
-      request<SaveDraftResponse>(API_ROUTES.ADMIN_SAVE_DRAFT, {
-        method: "POST",
-        body: data,
-      }),
-
-    populate: (date?: string, category?: string, categories?: string[]) =>
-      request<PopulateResult>(API_ROUTES.ADMIN_POPULATE, {
-        method: "POST",
-        body: { ...(date ? { date } : {}), ...(category ? { category } : {}), ...(categories ? { categories } : {}) },
-      }),
-
-    draftQuestions: {
-      list: (date?: string) =>
-        request<AdminQuestionResponse[]>(`${API_ROUTES.ADMIN_QUESTIONS}/drafts`, {
-          params: date ? { date } : {},
-        }),
-    },
   },
 };

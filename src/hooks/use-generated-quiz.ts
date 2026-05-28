@@ -1,0 +1,174 @@
+"use client";
+
+import { useReducer, useCallback, useEffect, useMemo } from "react";
+import { useRouter } from "next/navigation";
+import { api } from "@/lib/api/client";
+import { notifySuccess, notifyError } from "@/lib/notify";
+import type { QuestionResponse, QuizResult } from "@/types/api";
+
+interface QuestionData {
+  id?: string;
+  text: string;
+  options: string[];
+  correctIndex: number;
+  explanation?: string | null;
+}
+
+interface StoredQuiz {
+  questions: QuestionData[];
+  category: string;
+}
+
+type State = {
+  questions: QuestionData[];
+  questionIds: Record<number, string>;
+  selected: Record<number, number>;
+  submitted: boolean;
+  score: number;
+  answerResults: boolean[];
+  loading: boolean;
+  submitting: boolean;
+  error: string | null;
+};
+
+type Action =
+  | { type: "QUESTIONS_LOADING" }
+  | { type: "QUESTIONS_SUCCESS"; questions: QuestionData[] }
+  | { type: "QUESTIONS_ERROR"; error: string }
+  | { type: "SELECT_ANSWER"; idx: number; optionIdx: number }
+  | { type: "SUBMIT_LOADING" }
+  | { type: "SUBMIT_SUCCESS"; score: number; total: number; answerResults: boolean[] }
+  | { type: "SUBMIT_ERROR"; error: string };
+
+const INITIAL: State = {
+  questions: [],
+  questionIds: {},
+  selected: {},
+  submitted: false,
+  score: 0,
+  answerResults: [],
+  loading: true,
+  submitting: false,
+  error: null,
+};
+
+function reducer(state: State, action: Action): State {
+  switch (action.type) {
+    case "QUESTIONS_LOADING":
+      return { ...state, loading: true, error: null };
+
+    case "QUESTIONS_SUCCESS": {
+      const ids: Record<number, string> = {};
+      action.questions.forEach((q, i) => {
+        if (q.id) ids[i] = q.id;
+      });
+      return { ...state, questions: action.questions, questionIds: ids, loading: false };
+    }
+
+    case "QUESTIONS_ERROR":
+      return { ...state, loading: false, error: action.error };
+
+    case "SELECT_ANSWER":
+      return { ...state, selected: { ...state.selected, [action.idx]: action.optionIdx } };
+
+    case "SUBMIT_LOADING":
+      return { ...state, submitting: true, error: null };
+
+    case "SUBMIT_SUCCESS":
+      return {
+        ...state,
+        submitting: false,
+        submitted: true,
+        score: action.score,
+        answerResults: action.answerResults,
+      };
+
+    case "SUBMIT_ERROR":
+      return { ...state, submitting: false, error: action.error };
+
+    default:
+      return state;
+  }
+}
+
+export function useGeneratedQuiz(category: string | null, date: string | null) {
+  const router = useRouter();
+  const [state, dispatch] = useReducer(reducer, INITIAL);
+
+  useEffect(() => {
+    loadQuestions();
+  }, []);
+
+  async function loadQuestions() {
+    dispatch({ type: "QUESTIONS_LOADING" });
+    try {
+      if (category && date) {
+        const data = await api.questions.list(category, date);
+        if (data && data.length > 0) {
+          dispatch({ type: "QUESTIONS_SUCCESS", questions: data });
+          return;
+        }
+      }
+    } catch { /* fall through to sessionStorage */ }
+
+    const stored = sessionStorage.getItem("generatedQuiz");
+    if (stored) {
+      try {
+        const quiz: StoredQuiz = JSON.parse(stored);
+        if (quiz.questions.length > 0) {
+          dispatch({ type: "QUESTIONS_SUCCESS", questions: quiz.questions });
+          return;
+        }
+      } catch { /* ignore */ }
+    }
+
+    dispatch({ type: "QUESTIONS_ERROR", error: "No questions available" });
+  }
+
+  const allAnswered = state.questions.every((_, i) => state.selected[i] !== undefined);
+
+  const handleSubmit = useCallback(async () => {
+    if (category && date && Object.keys(state.questionIds).length > 0) {
+      dispatch({ type: "SUBMIT_LOADING" });
+      try {
+        const answers = Object.entries(state.selected).map(([idx, selectedIndex]) => ({
+          questionId: state.questionIds[Number(idx)],
+          selectedIndex,
+        }));
+        const result: QuizResult = await api.quiz.attempt(category, date, answers);
+        dispatch({
+          type: "SUBMIT_SUCCESS",
+          score: result.answers.filter((a) => a.isCorrect).length,
+          total: result.total,
+          answerResults: result.answers.map((a) => a.isCorrect),
+        });
+        notifySuccess("Quiz completed!", `${result.answers.filter((a) => a.isCorrect).length}/${result.total} correct`);
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : "Failed to submit";
+        dispatch({ type: "SUBMIT_ERROR", error: msg });
+        notifyError("Submission failed", msg);
+      }
+    } else {
+      let correct = 0;
+      const results: boolean[] = [];
+      state.questions.forEach((qq, i) => {
+        const isCorrect = state.selected[i] === qq.correctIndex;
+        if (isCorrect) correct++;
+        results.push(isCorrect);
+      });
+      dispatch({ type: "SUBMIT_SUCCESS", score: correct, total: state.questions.length, answerResults: results });
+      sessionStorage.removeItem("generatedQuiz");
+      notifySuccess("Quiz completed!", `${correct}/${state.questions.length} correct`);
+    }
+  }, [category, date, state.questionIds, state.selected, state.questions]);
+
+  const actions = useMemo(
+    () => ({
+      selectAnswer: (idx: number, optionIdx: number) => dispatch({ type: "SELECT_ANSWER", idx, optionIdx }),
+      submit: handleSubmit,
+    }),
+    [handleSubmit]
+  );
+
+  return { state, actions, allAnswered };
+}

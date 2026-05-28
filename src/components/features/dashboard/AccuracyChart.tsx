@@ -32,7 +32,7 @@ export function AccuracyChart({ stats }: AccuracyChartProps) {
     <Paper withBorder p="lg" radius="lg" bg="white" mb="xl" className="animate-up">
       <Group mb="md">
         <Title order={4}>Accuracy by Category</Title>
-        <Badge size="sm" variant="light" color="violet">{data.length} categories</Badge>
+        <Badge size="sm" variant="light" color="indigo">{data.length} categories</Badge>
       </Group>
       <ResponsiveContainer width="100%" height={280}>
         <BarChart data={data} margin={{ top: 5, right: 10, bottom: 50, left: 0 }}>

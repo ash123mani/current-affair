@@ -2,7 +2,7 @@ import "@mantine/core/styles.css";
 import "@mantine/notifications/styles.css";
 import "@mantine/dates/styles.css";
 import type { Metadata } from "next";
-import { createTheme, MantineProvider } from "@mantine/core";
+import { createTheme, MantineProvider, Box } from "@mantine/core";
 import { Notifications } from "@mantine/notifications";
 import { AuthProvider } from "@/lib/auth.provider";
 import { Navbar } from "@/components/layout/Navbar";
@@ -10,17 +10,31 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "CurrentAffair — Daily Current Affairs Quiz",
-  description: "Generate quizzes from live Indian news. Pick newspapers, choose a topic, and test yourself.",
+  description: "Generate quizzes from live Indian news. Pick a date, choose topics, and test yourself.",
 };
 
 const theme = createTheme({
-  primaryColor: "violet",
-  defaultRadius: "lg",
+  primaryColor: "indigo",
+  defaultRadius: "md",
   fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
   fontFamilyMonospace: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace',
   headings: {
     fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
     fontWeight: "700",
+  },
+  colors: {
+    indigo: [
+      "#f0f0ff",
+      "#d9d9ff",
+      "#b3b3ff",
+      "#8585ff",
+      "#5c5cff",
+      "#4f46e5",
+      "#4338ca",
+      "#3730a3",
+      "#312e81",
+      "#1e1b4b",
+    ],
   },
   shadows: {
     xs: "0 1px 2px rgba(0,0,0,0.03)",
@@ -42,7 +56,7 @@ const theme = createTheme({
     lg: "16px",
     xl: "24px",
   },
-  primaryShade: 5,
+  primaryShade: 6,
   components: {
     Paper: {
       defaultProps: { withBorder: true, shadow: "sm", bg: "white" },
@@ -72,7 +86,7 @@ export default function RootLayout({
           <AuthProvider>
             <Notifications position="top-right" />
             <Navbar />
-            <main>{children}</main>
+            <Box component="main" mih="calc(100vh - 64px)">{children}</Box>
           </AuthProvider>
         </MantineProvider>
       </body>
