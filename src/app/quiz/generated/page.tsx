@@ -2,17 +2,22 @@
 
 import { Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Container, Text, Button, Stack, Loader } from "@mantine/core";
+import { Container, Title, Text, Button, Stack, Paper, Group } from "@mantine/core";
 import { useGeneratedQuiz } from "@/hooks/use-generated-quiz";
+import { LoadingSkeleton } from "@/components/ui/LoadingState";
+import { QuizTimer } from "@/components/ui/QuizTimer";
 import { QuizHeader } from "./_components/QuizHeader";
 import { QuestionCardView } from "./_components/QuestionCardView";
 import { ResultView } from "./_components/ResultView";
 
-function LoadingFallback() {
+function ErrorView({ message, onBack }: { message: string; onBack: () => void }) {
   return (
     <Container size="sm" py="xl" ta="center">
-      <Loader size="sm" color="indigo" />
-      <Text size="sm" c="dimmed" mt="md">Loading quiz...</Text>
+      <Paper withBorder p="xl" radius="lg">
+        <Title order={3} mb="sm">Quiz Unavailable</Title>
+        <Text c="dimmed" size="sm" mb="lg">{message}</Text>
+        <Button onClick={onBack} variant="light">Back to Home</Button>
+      </Paper>
     </Container>
   );
 }
@@ -24,10 +29,15 @@ function GeneratedQuizContent() {
   const date = searchParams.get("date");
   const { state, actions, allAnswered } = useGeneratedQuiz(category, date);
 
-  if (state.loading) return <LoadingFallback />;
+  if (state.loading) return <LoadingSkeleton page="generated-quiz" />;
+
   if (state.error || !state.questions.length) {
-    router.push("/");
-    return null;
+    return (
+      <ErrorView
+        message={state.error || "No questions available for this quiz."}
+        onBack={() => router.push("/")}
+      />
+    );
   }
 
   if (state.submitted) {
@@ -38,13 +48,20 @@ function GeneratedQuizContent() {
         questions={state.questions}
         selected={state.selected}
         onBackHome={() => router.push("/")}
+        onRetake={actions.retake}
       />
     );
   }
 
+  const answeredCount = Object.keys(state.selected).length;
+
   return (
     <Container size="sm" py="xl">
-      <QuizHeader answered={Object.keys(state.selected).length} total={state.questions.length} />
+      <QuizHeader answered={answeredCount} total={state.questions.length} />
+
+      <Group justify="end" mb="md">
+        <QuizTimer totalMinutes={5} />
+      </Group>
 
       <Stack gap="md">
         {state.questions.map((qq, idx) => (
@@ -65,7 +82,7 @@ function GeneratedQuizContent() {
         style={{ opacity: allAnswered ? 1 : 0.5 }}
         variant="gradient" gradient={{ from: "indigo", to: "violet", deg: 45 }}
       >
-        {state.submitting ? "Submitting..." : `Submit (${Object.keys(state.selected).length}/${state.questions.length} answered)`}
+        {state.submitting ? "Submitting..." : `Submit (${answeredCount}/${state.questions.length} answered)`}
       </Button>
     </Container>
   );
@@ -73,7 +90,7 @@ function GeneratedQuizContent() {
 
 export default function GeneratedQuizPage() {
   return (
-    <Suspense fallback={<LoadingFallback />}>
+    <Suspense fallback={<LoadingSkeleton page="generated-quiz" />}>
       <GeneratedQuizContent />
     </Suspense>
   );

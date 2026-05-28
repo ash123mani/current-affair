@@ -83,7 +83,7 @@ export function QuestionReviewCards({ questions, selectedCount, onStartQuiz, onR
           <Group justify="center" mb="md">
             <Badge size="sm" variant="light" color="gray" styles={{ root: { maxWidth: 300 } }}>
               {current.articleUrl ? (
-                <Anchor href={current.articleUrl} target="_blank" rel="noopener noreferrer" size="xs" c="dimmed" style={{ textDecoration: "none" }}>
+                <Anchor href={current.articleUrl} target="_blank" rel="noopener noreferrer" size="xs" c="dimmed" underline="never">
                   {current.articleTitle.length > 50 ? current.articleTitle.slice(0, 50) + "…" : current.articleTitle}
                 </Anchor>
               ) : (
@@ -93,7 +93,7 @@ export function QuestionReviewCards({ questions, selectedCount, onStartQuiz, onR
           </Group>
         )}
 
-        <Title order={4} mb="xl" className="text-wrap-pretty" style={{ lineHeight: 1.5 }}>
+        <Title order={4} mb="xl" className="text-wrap-pretty lh-1-5">
           {current.text}
         </Title>
 

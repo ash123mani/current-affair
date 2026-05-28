@@ -1,15 +1,16 @@
 "use client";
 
-import { Container, Title, Text, Paper, Button, Stack, RingProgress, Badge } from "@mantine/core";
+import { Container, Title, Text, Paper, Button, Stack, Group, RingProgress, Badge } from "@mantine/core";
 import { ReviewAnswerItem } from "./ReviewAnswerItem";
 
 export function ResultView({
-  score, total, questions, selected, onBackHome,
+  score, total, questions, selected, onBackHome, onRetake,
 }: {
   score: number; total: number;
   questions: { text: string; options: string[]; correctIndex: number; explanation?: string | null }[];
   selected: Record<number, number>;
   onBackHome: () => void;
+  onRetake?: () => void;
 }) {
   const pct = Math.round((score / total) * 100);
   const passed = pct >= 60;
@@ -25,7 +26,12 @@ export function ResultView({
         <Badge color={passed ? "green" : "red"} size="lg" mt="sm" variant="light">
           {passed ? "Passed" : "Needs Improvement"}
         </Badge>
-        <Button onClick={onBackHome} mt="xl" variant="light" fullWidth>Back to Home</Button>
+        <Group grow mt="xl">
+          {onRetake && (
+            <Button onClick={onRetake} variant="light" color="indigo">Retake Quiz</Button>
+          )}
+          <Button onClick={onBackHome} variant="light">Back to Home</Button>
+        </Group>
       </Paper>
       <Title order={4} mb="md">Review Answers</Title>
       <Stack gap="md">

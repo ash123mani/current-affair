@@ -5,7 +5,7 @@ import { useCallback, Suspense } from "react";
 import { Container, Title, Text, Paper, Badge, Group, Pagination, SimpleGrid, Box, Chip } from "@mantine/core";
 import { useQuizHistory } from "@/hooks/use-quiz-history";
 import { useCategories } from "@/hooks/use-categories";
-import { LoadingState } from "@/components/ui/LoadingState";
+import { LoadingSkeleton, LoadingState } from "@/components/ui/LoadingState";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ACCURACY_THRESHOLD } from "@/constants";
 
@@ -17,8 +17,8 @@ function HistoryCard({ attempt, onClick, idx }: { attempt: { id: string; date: s
   const borderColor = BORDER_COLORS[idx % BORDER_COLORS.length];
 
   return (
-    <Paper withBorder p="lg" radius="lg" bg="white" className="card-hover animate-up"
-      style={{ cursor: "pointer", borderLeft: `4px solid ${borderColor}` }}
+    <Paper withBorder p="lg" radius="lg" bg="white" className="card-hover animate-up cursor-pointer"
+      style={{ borderLeft: `4px solid ${borderColor}` }}
       onClick={onClick}
     >
       <Group justify="space-between" mb="sm">
@@ -75,7 +75,7 @@ function HistoryContent() {
     router.push(`/history?${params.toString()}`);
   }, [router, searchParams]);
 
-  if (loading && !attempts.length) return <LoadingState message="Loading history..." />;
+  if (loading && !attempts.length) return <LoadingSkeleton page="history" />;
 
   if (!attempts.length && !loading) {
     return (
@@ -120,7 +120,7 @@ function HistoryContent() {
 
 export default function HistoryPage() {
   return (
-    <Suspense fallback={<LoadingState message="Loading history..." />}>
+    <Suspense fallback={<LoadingSkeleton page="history" />}>
       <HistoryContent />
     </Suspense>
   );

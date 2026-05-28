@@ -45,7 +45,7 @@ export default function HomePage() {
             </Badge>
             <Title order={1} c="gray.9" mb="sm"
               fz="clamp(32px, 5vw, 52px)"
-              style={{ lineHeight: 1.12, letterSpacing: "-0.03em" }}
+              className="lh-1-12 tracking-tighter"
             >
               Your daily{" "}
               <Text component="span" variant="gradient" gradient={{ from: "indigo", to: "violet", deg: 90 }} inherit span>
@@ -53,7 +53,7 @@ export default function HomePage() {
               </Text>
               {" "}generator
             </Title>
-            <Text c="gray.6" size="lg" mb="lg" style={{ lineHeight: 1.7, fontWeight: 450 }}>
+            <Text c="gray.6" size="lg" mb="lg" className="lh-1-7 fw-450">
               Pick a date to fetch articles from top Indian news sources, choose what to study, and let AI build a quiz for you.
             </Text>
           </Box>

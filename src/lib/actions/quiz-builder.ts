@@ -4,6 +4,12 @@ import { api } from "@/lib/api/client";
 import { notifySuccess } from "@/lib/notify";
 import type { GeneratedQuestion } from "@/lib/services/generator/llm.service";
 
+interface StoredQuiz {
+  questions: GeneratedQuestion[];
+  category: string;
+  date: string;
+}
+
 interface Article {
   title: string;
   description: string;
@@ -111,11 +117,17 @@ export async function saveAndStartQuiz(
   onSuccess: (slug: string, date: string) => void
 ) {
   dispatch({ type: "SAVE_START", slug });
+
+  // Store in sessionStorage immediately so the generated page can load instantly
+  const dateStr = format(date, "yyyy-MM-dd");
+  const stored: StoredQuiz = { questions, category: slug, date: dateStr };
   try {
-    await api.quiz.saveQuestions(slug, format(date, "yyyy-MM-dd"), questions);
-    dispatch({ type: "SAVE_COMPLETE", slug });
-    onSuccess(slug, format(date, "yyyy-MM-dd"));
-  } catch (e) {
-    dispatch({ type: "SAVE_ERROR", slug, error: e instanceof Error ? e.message : "Failed to save questions" });
-  }
+    sessionStorage.setItem("generatedQuiz", JSON.stringify(stored));
+  } catch { /* storage full or unavailable */ }
+
+  // Try to save to DB in background — don't block navigation on failure
+  api.quiz.saveQuestions(slug, dateStr, questions).catch(() => {});
+
+  dispatch({ type: "SAVE_COMPLETE", slug });
+  onSuccess(slug, dateStr);
 }

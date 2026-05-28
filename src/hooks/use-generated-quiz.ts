@@ -17,6 +17,7 @@ interface QuestionData {
 interface StoredQuiz {
   questions: QuestionData[];
   category: string;
+  date: string;
 }
 
 type State = {
@@ -38,7 +39,8 @@ type Action =
   | { type: "SELECT_ANSWER"; idx: number; optionIdx: number }
   | { type: "SUBMIT_LOADING" }
   | { type: "SUBMIT_SUCCESS"; score: number; total: number; answerResults: boolean[] }
-  | { type: "SUBMIT_ERROR"; error: string };
+  | { type: "SUBMIT_ERROR"; error: string }
+  | { type: "RETAKE" };
 
 const INITIAL: State = {
   questions: [],
@@ -76,18 +78,30 @@ function reducer(state: State, action: Action): State {
 
     case "SUBMIT_SUCCESS":
       return {
-        ...state,
-        submitting: false,
-        submitted: true,
-        score: action.score,
-        answerResults: action.answerResults,
+        ...state, submitting: false, submitted: true,
+        score: action.score, answerResults: action.answerResults,
       };
 
     case "SUBMIT_ERROR":
       return { ...state, submitting: false, error: action.error };
 
+    case "RETAKE":
+      return { ...state, selected: {}, submitted: false, score: 0, answerResults: [], error: null };
+
     default:
       return state;
+  }
+}
+
+function loadFromSession(): StoredQuiz | null {
+  try {
+    const stored = sessionStorage.getItem("generatedQuiz");
+    if (!stored) return null;
+    const quiz: StoredQuiz = JSON.parse(stored);
+    if (!quiz.questions?.length) return null;
+    return quiz;
+  } catch {
+    return null;
   }
 }
 
@@ -95,47 +109,64 @@ export function useGeneratedQuiz(category: string | null, date: string | null) {
   const router = useRouter();
   const [state, dispatch] = useReducer(reducer, INITIAL);
 
+  // Track if user has started answering to avoid swapping questions mid-quiz
+  const hasSelected = useMemo(() => Object.keys(state.selected).length > 0, [state.selected]);
+
   useEffect(() => {
-    loadQuestions();
-  }, []);
+    const stored = loadFromSession();
 
-  async function loadQuestions() {
-    dispatch({ type: "QUESTIONS_LOADING" });
-    try {
-      if (category && date) {
-        const data = await api.questions.list(category, date);
-        if (data && data.length > 0) {
-          dispatch({ type: "QUESTIONS_SUCCESS", questions: data });
-          return;
-        }
-      }
-    } catch { /* fall through to sessionStorage */ }
-
-    const stored = sessionStorage.getItem("generatedQuiz");
     if (stored) {
-      try {
-        const quiz: StoredQuiz = JSON.parse(stored);
-        if (quiz.questions.length > 0) {
-          dispatch({ type: "QUESTIONS_SUCCESS", questions: quiz.questions });
-          return;
-        }
-      } catch { /* ignore */ }
+      dispatch({ type: "QUESTIONS_SUCCESS", questions: stored.questions });
+      return;
     }
 
-    dispatch({ type: "QUESTIONS_ERROR", error: "No questions available" });
-  }
+    // No session data — try API
+    if (category && date) {
+      api.questions.list(category, date)
+        .then((data) => {
+          if (data?.length > 0) {
+            dispatch({ type: "QUESTIONS_SUCCESS", questions: data });
+          } else {
+            dispatch({ type: "QUESTIONS_ERROR", error: "No questions found" });
+          }
+        })
+        .catch((e) => {
+          dispatch({ type: "QUESTIONS_ERROR", error: e instanceof Error ? e.message : "Failed to load" });
+        });
+    } else {
+      dispatch({ type: "QUESTIONS_ERROR", error: "Missing category or date" });
+    }
+  }, []);
+
+  // Background: try API to get real question IDs (only if user hasn't started answering)
+  useEffect(() => {
+    if (!category || !date) return;
+    if (state.questions.length === 0) return;
+    if (hasSelected) return;
+    if (state.questionIds && Object.keys(state.questionIds).length > 0) return;
+
+    api.questions.list(category, date)
+      .then((data) => {
+        if (data?.length === state.questions.length) {
+          dispatch({ type: "QUESTIONS_SUCCESS", questions: data });
+        }
+      })
+      .catch(() => {});
+  }, [category, date, state.questions.length, hasSelected]);
 
   const allAnswered = state.questions.every((_, i) => state.selected[i] !== undefined);
 
   const handleSubmit = useCallback(async () => {
-    if (category && date && Object.keys(state.questionIds).length > 0) {
+    const useApi = category && date && Object.keys(state.questionIds).length > 0;
+
+    if (useApi) {
       dispatch({ type: "SUBMIT_LOADING" });
       try {
         const answers = Object.entries(state.selected).map(([idx, selectedIndex]) => ({
           questionId: state.questionIds[Number(idx)],
           selectedIndex,
         }));
-        const result: QuizResult = await api.quiz.attempt(category, date, answers);
+        const result: QuizResult = await api.quiz.attempt(category!, date!, answers);
         dispatch({
           type: "SUBMIT_SUCCESS",
           score: result.answers.filter((a) => a.isCorrect).length,
@@ -143,6 +174,7 @@ export function useGeneratedQuiz(category: string | null, date: string | null) {
           answerResults: result.answers.map((a) => a.isCorrect),
         });
         notifySuccess("Quiz completed!", `${result.answers.filter((a) => a.isCorrect).length}/${result.total} correct`);
+        sessionStorage.removeItem("generatedQuiz");
       } catch (e) {
         const msg = e instanceof Error ? e.message : "Failed to submit";
         dispatch({ type: "SUBMIT_ERROR", error: msg });
@@ -166,6 +198,7 @@ export function useGeneratedQuiz(category: string | null, date: string | null) {
     () => ({
       selectAnswer: (idx: number, optionIdx: number) => dispatch({ type: "SELECT_ANSWER", idx, optionIdx }),
       submit: handleSubmit,
+      retake: () => dispatch({ type: "RETAKE" }),
     }),
     [handleSubmit]
   );

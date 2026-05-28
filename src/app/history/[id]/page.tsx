@@ -4,7 +4,7 @@ import { use } from "react";
 import { useRouter } from "next/navigation";
 import { Container, Paper, Title, Text, Button, Stack, Group, Badge, Divider, RingProgress, Box } from "@mantine/core";
 import { useAttemptDetail } from "@/hooks/use-attempt-detail";
-import { LoadingState } from "@/components/ui/LoadingState";
+import { LoadingSkeleton } from "@/components/ui/LoadingState";
 import { ErrorAlert } from "@/components/ui/ErrorAlert";
 import { ACCURACY_THRESHOLD } from "@/constants";
 
@@ -89,7 +89,7 @@ function AnswerReview({
         <>
           <Divider my="sm" />
           <Group gap="xs" align="flex-start" wrap="nowrap">
-            <Box className="opt-circle-sm" bg="blue.6" c="white" mt={2}>
+              <Box className="opt-circle-sm" bg="indigo.6" c="white" mt={2}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <circle cx="12" cy="12" r="10" /><path d="M12 16v-4" /><path d="M12 8h.01" />
               </svg>
@@ -107,7 +107,7 @@ export default function HistoryDetailPage({ params }: { params: Promise<{ id: st
   const router = useRouter();
   const { attempt, loading, error } = useAttemptDetail(id);
 
-  if (loading) return <LoadingState message="Loading attempt details..." />;
+  if (loading) return <LoadingSkeleton page="quiz" />;
   if (error) return <ErrorAlert message={error} />;
   if (!attempt) return <ErrorAlert message="Attempt not found" />;
 

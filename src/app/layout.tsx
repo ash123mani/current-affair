@@ -6,6 +6,8 @@ import { createTheme, MantineProvider, Box } from "@mantine/core";
 import { Notifications } from "@mantine/notifications";
 import { AuthProvider } from "@/lib/auth.provider";
 import { Navbar } from "@/components/layout/Navbar";
+import { PageTransition } from "@/components/layout/PageTransition";
+import { ErrorBoundary } from "@/components/ui/ErrorBoundary";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -59,8 +61,8 @@ const theme = createTheme({
   primaryShade: 6,
   components: {
     Paper: {
-      defaultProps: { withBorder: true, shadow: "sm", bg: "white" },
-      styles: { root: { backdropFilter: "blur(8px)", borderColor: "rgba(0,0,0,0.06)" } },
+      defaultProps: { withBorder: true, shadow: "sm" },
+      styles: { root: { backdropFilter: "blur(8px)" } },
     },
     Card: { defaultProps: { withBorder: true, shadow: "sm" } },
     Button: {
@@ -82,11 +84,15 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <MantineProvider theme={theme} forceColorScheme="light">
+        <MantineProvider theme={theme} defaultColorScheme="light">
           <AuthProvider>
             <Notifications position="top-right" />
             <Navbar />
-            <Box component="main" mih="calc(100vh - 64px)">{children}</Box>
+            <Box component="main" mih="calc(100vh - 64px)">
+              <ErrorBoundary>
+                <PageTransition>{children}</PageTransition>
+              </ErrorBoundary>
+            </Box>
           </AuthProvider>
         </MantineProvider>
       </body>

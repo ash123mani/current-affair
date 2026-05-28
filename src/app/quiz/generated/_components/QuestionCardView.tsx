@@ -13,7 +13,7 @@ export function QuestionCardView({
   questionNum: number;
 }) {
   return (
-    <Paper withBorder p="lg" radius="lg" bg="white">
+    <Paper withBorder p="lg" radius="lg" bg="var(--mantine-color-body)">
       <Group mb="md">
         <Badge size="sm" variant="filled" color="indigo">Q{questionNum + 1}</Badge>
       </Group>
@@ -23,12 +23,22 @@ export function QuestionCardView({
           const sel = selectedOption === optIdx;
           return (
             <Paper key={optIdx} withBorder p="sm" radius="md" className="card-hover option-card"
+              role="radio"
+              tabIndex={0}
+              aria-checked={sel}
+              aria-label={`Option ${optionLabels[optIdx]}: ${opt}`}
               style={{
                 borderColor: sel ? "var(--mantine-color-indigo-6)" : undefined,
                 borderWidth: sel ? 2 : 1,
                 background: sel ? "var(--mantine-color-indigo-0)" : undefined,
               }}
               onClick={() => onSelect(optIdx)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  onSelect(optIdx);
+                }
+              }}
             >
               <Group gap="sm">
                 <div className="opt-circle"

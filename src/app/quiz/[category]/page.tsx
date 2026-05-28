@@ -4,7 +4,7 @@ import { useState, use, Suspense } from "react";
 import { Container, Button, Group, Alert } from "@mantine/core";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQuiz } from "@/hooks/use-quiz";
-import { LoadingState } from "@/components/ui/LoadingState";
+import { LoadingSkeleton, LoadingState } from "@/components/ui/LoadingState";
 import { ErrorAlert } from "@/components/ui/ErrorAlert";
 import { QuestionCard } from "@/components/features/quiz/QuestionCard";
 import { QuizProgress } from "@/components/features/quiz/QuizProgress";
@@ -17,7 +17,7 @@ function QuizContent({ category, date }: { category: string; date: string | unde
   const [selected, setSelected] = useState<Record<string, number>>({});
   const [isRetake, setIsRetake] = useState(false);
 
-  if (loading) return <LoadingState message="Loading questions..." />;
+  if (loading) return <LoadingSkeleton page="quiz" />;
   if (error) return <ErrorAlert message={error} />;
   if (!questions.length) {
     return (
@@ -96,7 +96,7 @@ export default function QuizPage({ params }: { params: Promise<{ category: strin
   const date = searchParams.get("date") ?? undefined;
 
   return (
-    <Suspense fallback={<LoadingState message="Loading quiz..." />}>
+    <Suspense fallback={<LoadingSkeleton page="quiz" />}>
       <QuizContent category={category} date={date} />
     </Suspense>
   );
