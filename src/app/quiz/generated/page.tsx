@@ -2,14 +2,25 @@
 
 import { Suspense, useCallback, useRef, useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Container, Title, Text, Button, Stack, Paper, Group } from "@mantine/core";
+import { Container, Title, Text, Button, Stack, Paper, Group, Box } from "@mantine/core";
 import { useGeneratedQuiz } from "@/hooks/use-generated-quiz";
-import { LoadingSkeleton } from "@/components/ui/LoadingState";
-import { QuizTimer } from "@/components/ui/QuizTimer";
-import { QuizHeader } from "./_components/QuizHeader";
 import { QuestionCardView } from "./_components/QuestionCardView";
 import { QuizProgressDots } from "./_components/QuizProgressDots";
+import { QuizTimer } from "@/components/ui/QuizTimer";
+import { QuizHeader } from "./_components/QuizHeader";
 import { ResultView } from "./_components/ResultView";
+
+function SkeletonQuestion() {
+  return (
+    <Paper withBorder p="xl" radius="lg">
+      <Box className="skeleton-shimmer" h={20} w="30%" mb={12} />
+      <Box className="skeleton-shimmer" h={16} w="80%" mb={16} />
+      {[1, 2, 3, 4].map((j) => (
+        <Box key={j} className="skeleton-shimmer" h={48} mb={8} style={{ borderRadius: 10 }} />
+      ))}
+    </Paper>
+  );
+}
 
 function ErrorView({ message, onBack }: { message: string; onBack: () => void }) {
   return (
@@ -20,6 +31,17 @@ function ErrorView({ message, onBack }: { message: string; onBack: () => void })
         <Button onClick={onBack} variant="light">Back to Home</Button>
       </Paper>
     </Container>
+  );
+}
+
+function StreamingIndicator() {
+  return (
+    <Paper withBorder p="sm" radius="lg" ta="center" bg="terracotta.0">
+      <Group justify="center" gap="xs">
+        <Box className="skeleton-shimmer" style={{ width: 12, height: 12, borderRadius: "50%" }} />
+        <Text size="sm" c="terracotta.7" fw={500}>Generating more questions...</Text>
+      </Group>
+    </Paper>
   );
 }
 
@@ -59,12 +81,10 @@ function GeneratedQuizContent() {
     }
   }, []);
 
-  if (state.loading) return <LoadingSkeleton page="generated-quiz" />;
-
-  if (state.error || !state.questions.length) {
+  if (state.error && !state.questions.length) {
     return (
       <ErrorView
-        message={state.error || "No questions available for this quiz."}
+        message={state.error}
         onBack={() => router.push("/")}
       />
     );
@@ -87,19 +107,31 @@ function GeneratedQuizContent() {
 
   return (
     <Container size="sm" py="xl">
-      <QuizHeader answered={answeredCount} total={state.questions.length} />
+      {state.questions.length > 0 && !state.loading && (
+        <>
+          <QuizHeader answered={answeredCount} total={state.questions.length} />
 
-      <Group justify="space-between" align="center" mb="md">
-        <QuizProgressDots
-          total={state.questions.length}
-          currentIndex={visibleQ}
-          answered={state.selected}
-          onJump={scrollToQuestion}
-        />
-        <QuizTimer totalMinutes={5} onTimeout={actions.submit} />
-      </Group>
+          <Group justify="space-between" align="center" mb="md">
+            <QuizProgressDots
+              total={state.questions.length}
+              currentIndex={visibleQ}
+              answered={state.selected}
+              onJump={scrollToQuestion}
+            />
+            <QuizTimer totalMinutes={5} onTimeout={actions.submit} />
+          </Group>
+        </>
+      )}
 
       <Stack gap="md">
+        {state.loading && (
+          <>
+            <SkeletonQuestion />
+            <SkeletonQuestion />
+            <SkeletonQuestion />
+          </>
+        )}
+
         {state.questions.map((qq, idx) => (
           <div key={idx} ref={(el) => { questionRefs.current[idx] = el; }} data-qidx={idx}>
             <QuestionCardView
@@ -110,24 +142,44 @@ function GeneratedQuizContent() {
             />
           </div>
         ))}
+
+        {state.streaming && state.questions.length > 0 && (
+          <StreamingIndicator />
+        )}
       </Stack>
 
-      <Button
-        fullWidth size="lg" mt="xl"
-        onClick={allAnswered && !state.submitting ? actions.submit : undefined}
-        loading={state.submitting}
-        style={{ opacity: allAnswered ? 1 : 0.5 }}
-        variant="filled" color="terracotta"
-      >
-        {state.submitting ? "Submitting..." : `Submit (${answeredCount}/${state.questions.length} answered)`}
-      </Button>
+      {state.questions.length > 0 && !state.loading && (
+        <Button
+          fullWidth size="lg" mt="xl"
+          onClick={actions.submit}
+          disabled={!allAnswered || state.submitting}
+          loading={state.submitting}
+          variant="filled" color={allAnswered ? "terracotta" : "gray"}
+        >
+          {state.submitting
+            ? "Submitting..."
+            : allAnswered
+              ? `Submit (${answeredCount}/${state.questions.length})`
+              : `Answer all questions to submit (${answeredCount}/${state.questions.length})`}
+        </Button>
+      )}
+      {state.error && state.questions.length > 0 && (
+        <Text c="red" size="sm" mt="sm" ta="center">{state.error}</Text>
+      )}
     </Container>
   );
 }
 
 export default function GeneratedQuizPage() {
   return (
-    <Suspense fallback={<LoadingSkeleton page="generated-quiz" />}>
+    <Suspense fallback={
+      <Container size="sm" py="xl">
+        <Stack gap="md">
+          <SkeletonQuestion />
+          <SkeletonQuestion />
+        </Stack>
+      </Container>
+    }>
       <GeneratedQuizContent />
     </Suspense>
   );

@@ -1,10 +1,10 @@
 "use client";
 
-import { useReducer, useCallback, useEffect, useMemo } from "react";
-import { useRouter } from "next/navigation";
+import { useReducer, useCallback, useEffect, useMemo, useRef } from "react";
 import { api } from "@/lib/api/client";
 import { notifySuccess, notifyError } from "@/lib/notify";
-import type { QuestionResponse, QuizResult } from "@/types/api";
+import type { GeneratedQuestion } from "@/lib/services/generator/llm.service";
+import type { QuizResult } from "@/types/api";
 
 interface QuestionData {
   id?: string;
@@ -20,6 +20,12 @@ interface StoredQuiz {
   date: string;
 }
 
+interface PendingQuiz {
+  articles: { title: string; description: string; content?: string; source: string; url: string }[];
+  category: string;
+  date: string;
+}
+
 type State = {
   questions: QuestionData[];
   questionIds: Record<number, string>;
@@ -28,12 +34,16 @@ type State = {
   score: number;
   answerResults: boolean[];
   loading: boolean;
+  streaming: boolean;
   submitting: boolean;
   error: string | null;
 };
 
 type Action =
-  | { type: "QUESTIONS_LOADING" }
+  | { type: "STREAM_START" }
+  | { type: "STREAM_BATCH"; batch: QuestionData[]; total: number }
+  | { type: "STREAM_DONE" }
+  | { type: "STREAM_ERROR"; error: string }
   | { type: "QUESTIONS_SUCCESS"; questions: QuestionData[] }
   | { type: "QUESTIONS_ERROR"; error: string }
   | { type: "SELECT_ANSWER"; idx: number; optionIdx: number }
@@ -50,14 +60,29 @@ const INITIAL: State = {
   score: 0,
   answerResults: [],
   loading: true,
+  streaming: false,
   submitting: false,
   error: null,
 };
 
 function reducer(state: State, action: Action): State {
   switch (action.type) {
-    case "QUESTIONS_LOADING":
+    case "STREAM_START":
       return { ...state, loading: true, error: null };
+
+    case "STREAM_BATCH":
+      return {
+        ...state,
+        loading: false,
+        streaming: true,
+        questions: [...state.questions, ...action.batch],
+      };
+
+    case "STREAM_DONE":
+      return { ...state, streaming: false };
+
+    case "STREAM_ERROR":
+      return { ...state, loading: false, streaming: false, error: action.error };
 
     case "QUESTIONS_SUCCESS": {
       const ids: Record<number, string> = {};
@@ -93,7 +118,19 @@ function reducer(state: State, action: Action): State {
   }
 }
 
-function loadFromSession(): StoredQuiz | null {
+function loadPending(): PendingQuiz | null {
+  try {
+    const stored = sessionStorage.getItem("pendingQuizArticles");
+    if (!stored) return null;
+    const pending: PendingQuiz = JSON.parse(stored);
+    if (!pending.articles?.length) return null;
+    return pending;
+  } catch {
+    return null;
+  }
+}
+
+function loadStored(): StoredQuiz | null {
   try {
     const stored = sessionStorage.getItem("generatedQuiz");
     if (!stored) return null;
@@ -106,21 +143,40 @@ function loadFromSession(): StoredQuiz | null {
 }
 
 export function useGeneratedQuiz(category: string | null, date: string | null) {
-  const router = useRouter();
   const [state, dispatch] = useReducer(reducer, INITIAL);
-
-  // Track if user has started answering to avoid swapping questions mid-quiz
-  const hasSelected = useMemo(() => Object.keys(state.selected).length > 0, [state.selected]);
+  const cancelRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
-    const stored = loadFromSession();
-
+    const stored = loadStored();
     if (stored) {
       dispatch({ type: "QUESTIONS_SUCCESS", questions: stored.questions });
+      sessionStorage.removeItem("generatedQuiz");
       return;
     }
 
-    // No session data — try API
+    const pending = loadPending();
+    if (pending) {
+      sessionStorage.removeItem("pendingQuizArticles");
+      dispatch({ type: "STREAM_START" });
+
+      cancelRef.current = api.quiz.generateStream(
+        pending.articles,
+        pending.category,
+        pending.date,
+        (batch) => {
+          dispatch({ type: "STREAM_BATCH", batch: batch.questions, total: batch.totalQuestions });
+        },
+        (all) => {
+          dispatch({ type: "STREAM_DONE" });
+          api.quiz.saveQuestions(pending.category, pending.date, all).catch(() => {});
+        },
+        (errMsg) => {
+          dispatch({ type: "STREAM_ERROR", error: errMsg });
+        }
+      );
+      return;
+    }
+
     if (category && date) {
       api.questions.list(category, date)
         .then((data) => {
@@ -138,23 +194,7 @@ export function useGeneratedQuiz(category: string | null, date: string | null) {
     }
   }, []);
 
-  // Background: try API to get real question IDs (only if user hasn't started answering)
-  useEffect(() => {
-    if (!category || !date) return;
-    if (state.questions.length === 0) return;
-    if (hasSelected) return;
-    if (state.questionIds && Object.keys(state.questionIds).length > 0) return;
-
-    api.questions.list(category, date)
-      .then((data) => {
-        if (data?.length === state.questions.length) {
-          dispatch({ type: "QUESTIONS_SUCCESS", questions: data });
-        }
-      })
-      .catch(() => {});
-  }, [category, date, state.questions.length, hasSelected]);
-
-  const allAnswered = state.questions.every((_, i) => state.selected[i] !== undefined);
+  const allAnswered = state.questions.length > 0 && state.questions.every((_, i) => state.selected[i] !== undefined);
 
   const handleSubmit = useCallback(async () => {
     const useApi = category && date && Object.keys(state.questionIds).length > 0;
@@ -174,7 +214,6 @@ export function useGeneratedQuiz(category: string | null, date: string | null) {
           answerResults: result.answers.map((a) => a.isCorrect),
         });
         notifySuccess("Quiz completed!", `${result.answers.filter((a) => a.isCorrect).length}/${result.total} correct`);
-        sessionStorage.removeItem("generatedQuiz");
       } catch (e) {
         const msg = e instanceof Error ? e.message : "Failed to submit";
         dispatch({ type: "SUBMIT_ERROR", error: msg });
@@ -189,7 +228,6 @@ export function useGeneratedQuiz(category: string | null, date: string | null) {
         results.push(isCorrect);
       });
       dispatch({ type: "SUBMIT_SUCCESS", score: correct, total: state.questions.length, answerResults: results });
-      sessionStorage.removeItem("generatedQuiz");
       notifySuccess("Quiz completed!", `${correct}/${state.questions.length} correct`);
     }
   }, [category, date, state.questionIds, state.selected, state.questions]);

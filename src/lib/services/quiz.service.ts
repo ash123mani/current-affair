@@ -2,10 +2,16 @@ import { ConflictError, NotFoundError } from "../errors";
 import { categoryRepository } from "../repositories/category.repository";
 import { questionRepository } from "../repositories/question.repository";
 import { quizRepository } from "../repositories/quiz.repository";
+import type { TxFindAttempt, TxDeleteAttempt, TxCreateAttempt } from "../repositories/quiz.repository";
 
 type CategoryRepo = Pick<typeof categoryRepository, "findBySlug">;
 type QuestionRepo = Pick<typeof questionRepository, "findFullByCategoryAndDate">;
-type QuizRepo = Pick<typeof quizRepository, "findAttempt" | "createAttempt" | "deleteAttempt" | "findById">;
+type TxQuizRepo = {
+  findAttempt: TxFindAttempt;
+  deleteAttempt: TxDeleteAttempt;
+  createAttempt: TxCreateAttempt;
+};
+type QuizRepo = Pick<typeof quizRepository, "findAttempt" | "createAttempt" | "deleteAttempt" | "findById" | "transaction">;
 
 export class QuizService {
   constructor(
@@ -24,12 +30,6 @@ export class QuizService {
     const category = await this.categoryRepo.findBySlug(categorySlug);
     if (!category) throw new NotFoundError("Category");
 
-    const existing = await this.quizRepo.findAttempt(userId, category.id, date);
-    if (existing) {
-      if (!retake) throw new ConflictError("Already attempted this quiz");
-      await this.quizRepo.deleteAttempt(existing.id);
-    }
-
     const questions = await this.questionRepo.findFullByCategoryAndDate(
       category.id,
       date
@@ -45,13 +45,21 @@ export class QuizService {
       return { questionId: a.questionId, selectedIndex: a.selectedIndex, isCorrect };
     });
 
-    return this.quizRepo.createAttempt({
-      userId,
-      categoryId: category.id,
-      date,
-      score,
-      total: questions.length,
-      answers: answerData,
+    return this.quizRepo.transaction(async (tx: TxQuizRepo) => {
+      const existing = await tx.findAttempt(userId, category.id, date);
+      if (existing) {
+        if (!retake) throw new ConflictError("Already attempted this quiz");
+        await tx.deleteAttempt(existing.id);
+      }
+
+      return tx.createAttempt({
+        userId,
+        categoryId: category.id,
+        date,
+        score,
+        total: questions.length,
+        answers: answerData,
+      });
     });
   }
 

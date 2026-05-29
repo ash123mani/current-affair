@@ -3,8 +3,6 @@
 import { Paper, Title, Text, Group, Button, Badge, SimpleGrid, Box, Checkbox, Tabs } from "@mantine/core";
 import { format } from "date-fns";
 import { CATEGORIES } from "@/constants/categories";
-import { GeneratingView } from "./GeneratingView";
-import { QuestionReviewCards } from "../QuestionReviewCards";
 
 interface Article {
   title: string;
@@ -19,10 +17,6 @@ interface Article {
 interface TabState {
   articles: Article[];
   selectedIndices: number[];
-  questions: { text: string; options: string[]; articleTitle?: string; articleUrl?: string; correctIndex: number; explanation: string }[];
-  totalGenerated: number;
-  saving: boolean;
-  saved: boolean;
 }
 
 const CATEGORY_COLORS: Record<string, { color: string; label: string }> = {};
@@ -67,23 +61,19 @@ function ArticleCard({ article, selected, onToggle, sourceColor }: { article: Ar
 }
 
 export function CategoryTabs({
-  date, slugs, activeTab, tabs, phase, cancelTab,
-  onSetActiveTab, onSelectAll, onClearAll, onToggleArticle, onGenerateQuiz, onCancelGeneration, onSaveAndStart, onResetQuestions,
+  date, slugs, activeTab, tabs, phase,
+  onSetActiveTab, onSelectAll, onClearAll, onToggleArticle, onGenerateQuiz,
 }: {
   date: Date;
   slugs: string[];
   activeTab: string | null;
   tabs: Record<string, TabState>;
   phase: string;
-  cancelTab: string | null;
   onSetActiveTab: (slug: string) => void;
   onSelectAll: (slug: string) => void;
   onClearAll: (slug: string) => void;
   onToggleArticle: (slug: string, idx: number) => void;
   onGenerateQuiz: (slug: string) => void;
-  onCancelGeneration: (slug: string) => void;
-  onSaveAndStart: (slug: string) => void;
-  onResetQuestions: (slug: string) => void;
 }) {
   const tab = activeTab ? tabs[activeTab] : undefined;
 
@@ -104,7 +94,6 @@ export function CategoryTabs({
           {slugs.map((slug) => {
             const meta = CATEGORY_COLORS[slug];
             const t = tabs[slug];
-            const hasQuestions = t && t.questions.length > 0 && phase !== "generating";
             return (
               <Tabs.Tab key={slug} value={slug}
                 style={{
@@ -118,7 +107,6 @@ export function CategoryTabs({
                 <Group gap={4}>
                   <Text size="sm">{meta?.label ?? slug}</Text>
                   <Badge size="xs" variant="light" color="gray">{t?.articles.length ?? 0}</Badge>
-                  {hasQuestions && <Badge size="xs" variant="filled" color="green">{t!.questions.length}</Badge>}
                 </Group>
               </Tabs.Tab>
             );
@@ -128,30 +116,6 @@ export function CategoryTabs({
         {slugs.map((slug) => {
           if (activeTab !== slug || !tab) return null;
           const meta = CATEGORY_COLORS[slug] ?? CATEGORY_COLORS.general!;
-
-          if (phase === "generating" && cancelTab === slug) {
-            return (
-              <GeneratingView key={slug}
-                questions={tab.questions}
-                totalGenerated={tab.totalGenerated}
-                onCancel={() => onCancelGeneration(slug)}
-              />
-            );
-          }
-
-          if (tab.questions.length > 0) {
-            return (
-              <Box key={slug}>
-                <QuestionReviewCards
-                  questions={tab.questions}
-                  selectedCount={tab.selectedIndices.length}
-                  onStartQuiz={() => onSaveAndStart(slug)}
-                  onReset={() => onResetQuestions(slug)}
-                  saving={tab.saving}
-                />
-              </Box>
-            );
-          }
 
           const groupedBySource: Record<string, Article[]> = {};
           tab.articles.forEach((a) => {

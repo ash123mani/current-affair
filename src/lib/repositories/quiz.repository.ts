@@ -1,7 +1,51 @@
 import { prisma } from "../prisma";
 import type { Prisma } from "@/generated/prisma/client";
 
+export type TxFindAttempt = (userId: string, categoryId: string, date: string) =>
+  Promise<{ id: string } | null>;
+export type TxDeleteAttempt = (id: string) => Promise<{ id: string }>;
+export type TxCreateAttempt = (data: {
+  userId: string; categoryId: string; date: string;
+  score: number; total: number;
+  answers: { questionId: string; selectedIndex: number; isCorrect: boolean }[];
+}) => Promise<{ id: string; score: number; total: number; answers: { isCorrect: boolean }[] }>;
+
 export const quizRepository = {
+  transaction: <T>(fn: (tx: {
+    findAttempt: TxFindAttempt;
+    deleteAttempt: TxDeleteAttempt;
+    createAttempt: TxCreateAttempt;
+  }) => Promise<T>) =>
+    prisma.$transaction(async (prismaTx) => {
+      const txRepo = {
+        findAttempt: (userId: string, categoryId: string, date: string) =>
+          prismaTx.quizAttempt.findUnique({
+            where: { userId_categoryId_date: { userId, categoryId, date } },
+          }),
+        deleteAttempt: (id: string) =>
+          prismaTx.quizAttempt.delete({ where: { id } }),
+        createAttempt: (data: {
+          userId: string;
+          categoryId: string;
+          date: string;
+          score: number;
+          total: number;
+          answers: { questionId: string; selectedIndex: number; isCorrect: boolean }[];
+        }) =>
+          prismaTx.quizAttempt.create({
+            data: {
+              userId: data.userId,
+              categoryId: data.categoryId,
+              date: data.date,
+              score: data.score,
+              total: data.total,
+              answers: { create: data.answers },
+            },
+            include: { answers: true },
+          }),
+      };
+      return fn(txRepo);
+    }),
   findAttempt: (userId: string, categoryId: string, date: string) =>
     prisma.quizAttempt.findUnique({
       where: {

@@ -7,7 +7,6 @@ export interface State {
   error: string | null;
   groupedData: Record<string, { title: string; description: string; content?: string; source: string; url: string; publishedAt: string; imageUrl?: string }[]>;
   activeTab: string | null;
-  cancelTab: string | null;
   tabs: Record<string, TabState>;
 }
 
@@ -17,7 +16,6 @@ export const INITIAL_STATE: State = {
   error: null,
   groupedData: {},
   activeTab: null,
-  cancelTab: null,
   tabs: {},
 };
 
@@ -76,91 +74,6 @@ export function quizBuilderReducer(state: State, action: Action): State {
       const tab = state.tabs[action.slug];
       if (!tab) return state;
       return { ...state, tabs: { ...state.tabs, [action.slug]: { ...tab, selectedIndices: [] } } };
-    }
-
-    case "GENERATE_START": {
-      const tab = state.tabs[action.slug];
-      if (!tab) return state;
-      return {
-        ...state,
-        phase: "generating",
-        cancelTab: action.slug,
-        error: null,
-        tabs: { ...state.tabs, [action.slug]: { ...tab, questions: [], totalGenerated: 0, saved: false } },
-      };
-    }
-
-    case "GENERATE_BATCH": {
-      const tab = state.tabs[action.slug];
-      if (!tab) return state;
-      return {
-        ...state,
-        tabs: {
-          ...state.tabs,
-          [action.slug]: { ...tab, questions: [...tab.questions, ...action.batch], totalGenerated: action.total },
-        },
-      };
-    }
-
-    case "GENERATE_COMPLETE": {
-      const tab = state.tabs[action.slug];
-      if (!tab) return state;
-      return {
-        ...state,
-        phase: "reviewing",
-        cancelTab: null,
-        tabs: { ...state.tabs, [action.slug]: { ...tab, questions: action.questions, totalGenerated: action.questions.length } },
-      };
-    }
-
-    case "GENERATE_ERROR": {
-      const tab = state.tabs[action.slug];
-      if (!tab) return state;
-      return {
-        ...state,
-        phase: "tabs",
-        cancelTab: null,
-        error: action.error,
-        tabs: { ...state.tabs, [action.slug]: { ...tab, totalGenerated: 0 } },
-      };
-    }
-
-    case "GENERATE_CANCEL": {
-      const tab = state.tabs[action.slug];
-      if (!tab) return state;
-      return {
-        ...state,
-        phase: tab.questions.length > 0 ? "reviewing" : "tabs",
-        cancelTab: null,
-      };
-    }
-
-    case "SAVE_START": {
-      const tab = state.tabs[action.slug];
-      if (!tab) return state;
-      return { ...state, tabs: { ...state.tabs, [action.slug]: { ...tab, saving: true } } };
-    }
-
-    case "SAVE_COMPLETE": {
-      const tab = state.tabs[action.slug];
-      if (!tab) return state;
-      return { ...state, tabs: { ...state.tabs, [action.slug]: { ...tab, saving: false, saved: true } } };
-    }
-
-    case "SAVE_ERROR": {
-      const tab = state.tabs[action.slug];
-      if (!tab) return state;
-      return { ...state, error: action.error, tabs: { ...state.tabs, [action.slug]: { ...tab, saving: false } } };
-    }
-
-    case "RESET_QUESTIONS": {
-      const tab = state.tabs[action.slug];
-      if (!tab) return state;
-      return {
-        ...state,
-        phase: "tabs",
-        tabs: { ...state.tabs, [action.slug]: { ...tab, questions: [], totalGenerated: 0, saved: false } },
-      };
     }
 
     case "DISMISS_ERROR":

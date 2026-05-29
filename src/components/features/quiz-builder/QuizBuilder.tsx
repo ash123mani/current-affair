@@ -15,12 +15,13 @@ export function QuizBuilder() {
     <Box>
       <StepIndicator stepIndex={stepIndex} />
 
-      {state.error && (state.phase === "date" || state.phase === "no-articles") && (
+      {state.phase === "date" && state.error && (
         <Alert color="red" variant="light" radius="md" mb="lg" withCloseButton onClose={actions.dismissError}>
           {state.error}
         </Alert>
       )}
-      {state.error && (state.phase === "tabs" || state.phase === "reviewing") && (
+
+      {state.phase === "tabs" && state.error && (
         <Alert color="red" variant="light" radius="md" mb="lg" withCloseButton onClose={actions.dismissError}>
           {state.error}
         </Alert>
@@ -45,22 +46,18 @@ export function QuizBuilder() {
         </Paper>
       )}
 
-      {(state.phase === "tabs" || state.phase === "generating" || state.phase === "reviewing") && slugs.length > 0 && (
+      {state.phase === "tabs" && slugs.length > 0 && (
         <CategoryTabs
           date={state.date}
           slugs={slugs}
           activeTab={state.activeTab}
           tabs={state.tabs}
           phase={state.phase}
-          cancelTab={state.cancelTab}
           onSetActiveTab={actions.setActiveTab}
           onSelectAll={actions.selectAll}
           onClearAll={actions.clearAll}
           onToggleArticle={actions.toggleArticle}
           onGenerateQuiz={actions.generateQuiz}
-          onCancelGeneration={actions.cancelGeneration}
-          onSaveAndStart={actions.saveAndStartQuiz}
-          onResetQuestions={actions.resetQuestions}
         />
       )}
     </Box>

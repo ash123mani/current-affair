@@ -68,7 +68,7 @@ export async function GET(request: NextRequest) {
       return err(new AppError("category query param is required", 400));
     }
 
-    const questions = await questionService.getQuestionsWithAnswers(category, date);
+    const questions = await questionService.getQuestions(category, date);
     return ok(questions);
   } catch (error) {
     return err(error);
