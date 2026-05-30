@@ -14,7 +14,7 @@ export function ReviewAnswerItem({
   userSelected: number;
 }) {
   return (
-    <Paper withBorder p="md" radius="lg" bg="white">
+    <Paper withBorder p="md" radius="lg">
       <Group mb="sm">
         <Badge size="sm" variant="filled" color={isCorrect ? "green" : "red"}>#{selectedIdx + 1}</Badge>
         <Badge color={isCorrect ? "green" : "red"} size="sm" variant="light">
@@ -27,10 +27,10 @@ export function ReviewAnswerItem({
           const sel = optIdx === userSelected;
           const correctOpt = optIdx === correctIdx;
           const wrongSel = sel && !isCorrect;
-          const bg = correctOpt ? "var(--mantine-color-green-0)" : wrongSel ? "var(--mantine-color-red-0)" : "var(--mantine-color-gray-0)";
+          const bg = correctOpt ? "var(--mantine-color-green-0)" : wrongSel ? "var(--mantine-color-red-0)" : "var(--mantine-color-dark-6)";
           const border = correctOpt ? "var(--mantine-color-green-6)" : wrongSel ? "var(--mantine-color-red-6)" : "transparent";
-          const lbg = correctOpt ? "var(--mantine-color-green-6)" : wrongSel ? "var(--mantine-color-red-6)" : "var(--mantine-color-gray-2)";
-          const lc = correctOpt || wrongSel ? "white" : "var(--mantine-color-gray-6)";
+          const lbg = correctOpt ? "var(--mantine-color-green-6)" : wrongSel ? "var(--mantine-color-red-6)" : "var(--mantine-color-dark-5)";
+          const lc = correctOpt || wrongSel ? "white" : "var(--mantine-color-dark-3)";
           return (
             <Group key={optIdx} gap="sm" p="xs" style={{ background: bg, borderRadius: 8, border: `1px solid ${border}` }}>
               <div className="opt-circle-sm" style={{ background: lbg, color: lc }}>
@@ -47,7 +47,7 @@ export function ReviewAnswerItem({
         })}
       </Stack>
       {question.explanation && <Divider my="sm" />}
-      {question.explanation && <Text size="xs" c="dimmed">{question.explanation}</Text>}
+      {question.explanation && <Text size="xs" c="dark.2">{question.explanation}</Text>}
     </Paper>
   );
 }

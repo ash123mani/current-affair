@@ -27,7 +27,7 @@ export class ErrorBoundary extends Component<Props, State> {
         <Container size="sm" py="xl" ta="center">
           <Paper withBorder p="xl" radius="lg">
             <Title order={3} mb="sm">Something went wrong</Title>
-            <Text c="dimmed" size="sm" mb="lg">
+            <Text c="dark.2" size="sm" mb="lg">
               {this.state.error?.message || "An unexpected error occurred"}
             </Text>
             <Button onClick={() => this.setState({ hasError: false, error: null })} variant="light">

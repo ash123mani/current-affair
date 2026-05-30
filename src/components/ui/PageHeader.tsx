@@ -12,7 +12,7 @@ export function PageHeader({ title, subtitle }: PageHeaderProps) {
         {title}
       </Title>
       {subtitle && (
-        <Text c="dimmed" mb="xl" size="lg">
+        <Text c="dark.2" mb="xl" size="lg">
           {subtitle}
         </Text>
       )}

@@ -26,7 +26,7 @@ export function QuizResultView({
 
   return (
     <Container size="sm" py="xl">
-      <Paper withBorder p="xl" radius="md" ta="center" mb="xl" bg="white">
+      <Paper withBorder p="xl" radius="md" ta="center" mb="xl">
         <Title order={3} mb="lg">Quiz Complete!</Title>
 
         <Group justify="center" mb="lg">
@@ -44,7 +44,7 @@ export function QuizResultView({
 
         <Group mt="xl" grow>
           {onRetake && (
-            <Button onClick={onRetake} variant="light" color="terracotta">Retake Quiz</Button>
+            <Button onClick={onRetake} variant="light" color="violet">Retake Quiz</Button>
           )}
           <Button onClick={onBackHome} variant="light">Back to Home</Button>
         </Group>
@@ -59,9 +59,9 @@ export function QuizResultView({
           const isCorrect = answer?.isCorrect;
 
           return (
-            <Paper key={q.id} withBorder p="md" radius="md" bg="white">
+            <Paper key={q.id} withBorder p="md" radius="md">
               <Group mb="sm" gap="xs">
-                <Text size="xs" c="dimmed" fw={600}>#{idx + 1}</Text>
+                <Text size="xs" c="dark.2" fw={600}>#{idx + 1}</Text>
                 <Badge color={isCorrect ? "green" : "red"} size="sm" variant="light">
                   {isCorrect ? "Correct" : "Wrong"}
                 </Badge>
@@ -76,9 +76,9 @@ export function QuizResultView({
                   const isWrongSelection = isSelected && !isCorrect;
 
                   let bg = "white";
-                  let borderColor = "var(--mantine-color-gray-3)";
-                  let labelColor = "var(--mantine-color-gray-6)";
-                  let labelBg = "var(--mantine-color-gray-1)";
+                  let borderColor = "var(--mantine-color-dark-4)";
+                  let labelColor = "var(--mantine-color-dark-3)";
+                  let labelBg = "var(--mantine-color-dark-6)";
                   let textColor: string | undefined;
 
                   if (isCorrectOption) {
@@ -112,10 +112,10 @@ export function QuizResultView({
                 <>
                   <Divider my="sm" />
                   <Group gap="xs" align="flex-start" wrap="nowrap">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--mantine-color-terracotta-6)" strokeWidth="2" className="flex-shrink-0" style={{ marginTop: 2 }}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--mantine-color-violet-6)" strokeWidth="2" className="flex-shrink-0" style={{ marginTop: 2 }}>
                       <circle cx="12" cy="12" r="10" /><path d="M12 16v-4" /><path d="M12 8h.01" />
                     </svg>
-                    <Text size="xs" c="dimmed">{q.explanation}</Text>
+                    <Text size="xs" c="dark.2">{q.explanation}</Text>
                   </Group>
                 </>
               )}

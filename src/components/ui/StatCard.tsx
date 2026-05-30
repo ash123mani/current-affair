@@ -7,13 +7,12 @@ interface StatCardProps {
   color?: string;
 }
 
-export function StatCard({ label, value, icon, color = "terracotta" }: StatCardProps) {
+export function StatCard({ label, value, icon, color = "violet" }: StatCardProps) {
   return (
     <Paper
       withBorder
       p="lg"
       radius="lg"
-      bg="white"
       className="animate-scale card-hover"
     >
       <Group gap="md">

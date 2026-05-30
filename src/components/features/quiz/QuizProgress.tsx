@@ -15,11 +15,11 @@ export function QuizProgress({ answered, total, currentIndex, categoryName }: Qu
       <Group justify="space-between" mb="sm">
         <Group gap="xs">
           <Text fw={600} size="md">{categoryName}</Text>
-          <Badge size="sm" variant="light" color="terracotta">{currentIndex + 1}/{total}</Badge>
+          <Badge size="sm" variant="light" color="violet">{currentIndex + 1}/{total}</Badge>
         </Group>
-        <Text size="sm" c="dimmed">{answered}/{total} answered</Text>
+        <Text size="sm" c="dark.2">{answered}/{total} answered</Text>
       </Group>
-      <Progress value={progress} color={progress === 100 ? "green" : "terracotta"} size="sm" radius="md" animated={progress < 100} />
+      <Progress value={progress} color={progress === 100 ? "green" : "violet"} size="sm" radius="md" animated={progress < 100} />
       <Group gap={4} mt="xs" justify="center">
         {Array.from({ length: total }, (_, i) => (
           <div
@@ -28,7 +28,7 @@ export function QuizProgress({ answered, total, currentIndex, categoryName }: Qu
             style={{
               width: 8,
               height: 8,
-              background: i === currentIndex ? "var(--mantine-color-terracotta-6)" : i < currentIndex ? "var(--mantine-color-green-4)" : "var(--mantine-color-gray-3)",
+              background: i === currentIndex ? "var(--mantine-color-violet-6)" : i < currentIndex ? "var(--mantine-color-green-4)" : "var(--mantine-color-dark-5)",
               transition: "all 0.2s ease",
             }}
           />

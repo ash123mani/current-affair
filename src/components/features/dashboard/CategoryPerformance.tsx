@@ -7,7 +7,7 @@ interface CategoryPerformanceProps {
   stats: CategoryStat[];
 }
 
-const BORDER_COLORS = ["#D97B4F", "#E8A87C", "#C4663C", "#A3502C", "#8B7355", "#B4B2A9", "#D3D1C7", "#888780"];
+const BORDER_COLORS = ["#a78bfa", "#60a5fa", "#34d399", "#f472b6", "#22d3ee", "#fb923c", "#c084fc", "#4ade80"];
 
 export function CategoryPerformance({ stats }: CategoryPerformanceProps) {
   if (stats.length === 0) {
@@ -25,7 +25,6 @@ export function CategoryPerformance({ stats }: CategoryPerformanceProps) {
             withBorder
             p="lg"
             radius="lg"
-            bg="white"
             className="animate-up card-hover"
             style={{ borderLeft: `4px solid ${borderColor}` }}
           >
@@ -41,14 +40,14 @@ export function CategoryPerformance({ stats }: CategoryPerformanceProps) {
                 <Group gap="xs" mb={2}>
                   <Text fw={600} size="sm">{cat.name}</Text>
                 </Group>
-                <Text size="xs" c="dimmed" mb={4}>
+                <Text size="xs" c="dark.2" mb={4}>
                   {cat.totalScore}/{cat.totalQuestions} correct
                 </Text>
                 <Group gap="xs">
                   <Badge size="xs" color={passed ? "green" : "red"} variant="light">
                     {cat.attempts} attempt{cat.attempts > 1 ? "s" : ""}
                   </Badge>
-                  <Badge size="xs" color="gray" variant="light">
+                  <Badge size="xs" color="dark.4" variant="light">
                     {cat.accuracy}% acc
                   </Badge>
                 </Group>

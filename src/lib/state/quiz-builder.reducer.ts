@@ -6,7 +6,6 @@ export interface State {
   phase: Phase;
   error: string | null;
   groupedData: Record<string, { title: string; description: string; content?: string; source: string; url: string; publishedAt: string; imageUrl?: string }[]>;
-  activeTab: string | null;
   tabs: Record<string, TabState>;
 }
 
@@ -15,7 +14,6 @@ export const INITIAL_STATE: State = {
   phase: "date",
   error: null,
   groupedData: {},
-  activeTab: null,
   tabs: {},
 };
 
@@ -25,7 +23,7 @@ export function quizBuilderReducer(state: State, action: Action): State {
       return { ...state, date: action.date };
 
     case "FETCH_START":
-      return { ...state, phase: "fetching", error: null, groupedData: {}, tabs: {}, activeTab: null };
+      return { ...state, phase: "fetching", error: null, groupedData: {}, tabs: {} };
 
     case "FETCH_SUCCESS": {
       const slugs = Object.keys(action.categories);
@@ -37,7 +35,6 @@ export function quizBuilderReducer(state: State, action: Action): State {
         ...state,
         phase: "tabs",
         groupedData: action.categories,
-        activeTab: slugs[0],
         tabs,
       };
     }
@@ -47,9 +44,6 @@ export function quizBuilderReducer(state: State, action: Action): State {
 
     case "FETCH_ERROR":
       return { ...state, phase: "date", error: action.error };
-
-    case "SET_ACTIVE_TAB":
-      return { ...state, activeTab: action.slug };
 
     case "TOGGLE_ARTICLE": {
       const tab = state.tabs[action.slug];

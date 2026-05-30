@@ -15,7 +15,7 @@ export function QuestionCardView({
   return (
     <Paper withBorder p="lg" radius="lg" bg="var(--mantine-color-body)">
       <Group mb="md">
-        <Badge size="sm" variant="filled" color="terracotta">Q{questionNum + 1}</Badge>
+        <Badge size="sm" variant="filled" color="violet">Q{questionNum + 1}</Badge>
       </Group>
       <Text fw={500} size="sm" mb="md">{question.text}</Text>
       <Stack gap={8}>
@@ -28,9 +28,9 @@ export function QuestionCardView({
               aria-checked={sel}
               aria-label={`Option ${optionLabels[optIdx]}: ${opt}`}
               style={{
-                borderColor: sel ? "var(--mantine-color-terracotta-6)" : undefined,
+                borderColor: sel ? "var(--mantine-color-violet-6)" : undefined,
                 borderWidth: sel ? 2 : 1,
-                background: sel ? "var(--mantine-color-terracotta-0)" : undefined,
+                background: sel ? "var(--mantine-color-violet-0)" : undefined,
               }}
               onClick={() => onSelect(optIdx)}
               onKeyDown={(e) => {
@@ -43,8 +43,8 @@ export function QuestionCardView({
               <Group gap="sm">
                 <div className="opt-circle"
                   style={{
-                    background: sel ? "var(--mantine-color-terracotta-6)" : "var(--mantine-color-gray-1)",
-                    color: sel ? "white" : "var(--mantine-color-gray-6)",
+                    background: sel ? "var(--mantine-color-violet-6)" : "var(--mantine-color-dark-6)",
+                    color: sel ? "white" : "var(--mantine-color-dark-3)",
                   }}
                 >
                   {optionLabels[optIdx]}

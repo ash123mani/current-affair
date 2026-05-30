@@ -6,12 +6,13 @@ import { notifySuccess, notifyError } from "@/lib/notify";
 import type { GeneratedQuestion } from "@/lib/services/generator/llm.service";
 import type { QuizResult } from "@/types/api";
 
-interface QuestionData {
+export interface QuestionData {
   id?: string;
   text: string;
   options: string[];
   correctIndex: number;
   explanation?: string | null;
+  categorySlug?: string;
 }
 
 interface StoredQuiz {
@@ -21,7 +22,7 @@ interface StoredQuiz {
 }
 
 interface PendingQuiz {
-  articles: { title: string; description: string; content?: string; source: string; url: string }[];
+  articles: { title: string; description: string; content?: string; source: string; url: string; categorySlug?: string }[];
   category: string;
   date: string;
 }
@@ -145,8 +146,12 @@ function loadStored(): StoredQuiz | null {
 export function useGeneratedQuiz(category: string | null, date: string | null) {
   const [state, dispatch] = useReducer(reducer, INITIAL);
   const cancelRef = useRef<(() => void) | null>(null);
+  const startedRef = useRef(false);
 
   useEffect(() => {
+    if (startedRef.current) return;
+    startedRef.current = true;
+
     const stored = loadStored();
     if (stored) {
       dispatch({ type: "QUESTIONS_SUCCESS", questions: stored.questions });
@@ -156,7 +161,6 @@ export function useGeneratedQuiz(category: string | null, date: string | null) {
 
     const pending = loadPending();
     if (pending) {
-      sessionStorage.removeItem("pendingQuizArticles");
       dispatch({ type: "STREAM_START" });
 
       cancelRef.current = api.quiz.generateStream(
@@ -164,7 +168,7 @@ export function useGeneratedQuiz(category: string | null, date: string | null) {
         pending.category,
         pending.date,
         (batch) => {
-          dispatch({ type: "STREAM_BATCH", batch: batch.questions, total: batch.totalQuestions });
+          dispatch({ type: "STREAM_BATCH", batch: batch.questions as QuestionData[], total: batch.totalQuestions });
         },
         (all) => {
           dispatch({ type: "STREAM_DONE" });
@@ -192,6 +196,10 @@ export function useGeneratedQuiz(category: string | null, date: string | null) {
     } else {
       dispatch({ type: "QUESTIONS_ERROR", error: "Missing category or date" });
     }
+
+    return () => {
+      try { sessionStorage.removeItem("pendingQuizArticles"); } catch {}
+    };
   }, []);
 
   const allAnswered = state.questions.length > 0 && state.questions.every((_, i) => state.selected[i] !== undefined);

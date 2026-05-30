@@ -1,55 +1,102 @@
-import { createTheme, type MantineColorsTuple, rem } from "@mantine/core";
+// theme.ts — Cosmic Pulse Quiz App
+// Full Mantine v7 theme configuration
+// Usage: <MantineProvider theme={theme} forceColorScheme="dark">
 
-const warmGray: MantineColorsTuple = [
-  "#F2EFE8",
-  "#EFECE5",
-  "#E8E4DC",
-  "#D3D1C7",
-  "#B4B2A9",
-  "#888780",
-  "#5F5E5A",
-  "#444441",
-  "#2C2C2A",
-  "#1A1A18",
+import {
+  createTheme,
+  MantineColorsTuple,
+  MantineThemeOverride,
+  rem,
+} from "@mantine/core";
+
+// ─── Color Palettes ───────────────────────────────────────────────────────────
+
+const violet: MantineColorsTuple = [
+  "#f5f3ff", // [0] lightest tint
+  "#ede9fe", // [1]
+  "#ddd6fe", // [2]
+  "#c4b5fd", // [3]
+  "#a78bfa", // [4]
+  "#8b5cf6", // [5]
+  "#7c3aed", // [6] ← primaryShade.dark  (buttons, focus rings)
+  "#6d28d9", // [7] ← primaryShade.light
+  "#5b21b6", // [8]
+  "#4c1d95", // [9] darkest
 ];
 
-const terracotta: MantineColorsTuple = [
-  "#FDF0E8",
-  "#F9D9C3",
-  "#F5C4A0",
-  "#EFA87A",
-  "#E69060",
-  "#D97B4F",
-  "#C4663C",
-  "#A3502C",
-  "#7A3E1F",
-  "#4A2210",
+// Remapped dark scale: deep indigo-purple instead of Mantine's default grays
+const dark: MantineColorsTuple = [
+  "#e2d9ff", // [0] bright heading text
+  "#c9b8f5", // [1] body text
+  "#9b8ec4", // [2] muted / secondary text
+  "#6b5f9e", // [3] placeholder text
+  "#4e3d8c", // [4] disabled
+  "#3d2b7a", // [5] border / divider
+  "#2e1f65", // [6] hover surface
+  "#241850", // [7] card / surface background
+  "#1e1440", // [8] elevated / navbar background
+  "#1a1133", // [9] app background (body)
 ];
 
-export const theme = createTheme({
-  primaryColor: "terracotta",
-  primaryShade: { light: 5, dark: 4 },
+// Accent colors used for quiz feedback and gamification
+const quizGreen: MantineColorsTuple = [
+  "#ecfdf5",
+  "#d1fae5",
+  "#a7f3d0",
+  "#6ee7b7",
+  "#34d399",
+  "#10b981",
+  "#3ecf8e", // [6] correct-answer highlight
+  "#059669",
+  "#047857",
+  "#065f46",
+];
 
-  colors: { warmGray, gray: warmGray, terracotta },
+const quizRed: MantineColorsTuple = [
+  "#fef2f2",
+  "#fee2e2",
+  "#fecaca",
+  "#fca5a5",
+  "#f87171", // [4] wrong-answer highlight
+  "#ef4444",
+  "#dc2626",
+  "#b91c1c",
+  "#991b1b",
+  "#7f1d1d",
+];
 
-  white: "#FAFAF8",
-  black: "#2C2C2A",
+const quizAmber: MantineColorsTuple = [
+  "#fffbeb",
+  "#fef3c7",
+  "#fde68a",
+  "#fcd34d",
+  "#facc15", // [4] streak / XP gold
+  "#f59e0b",
+  "#d97706",
+  "#b45309",
+  "#92400e",
+  "#78350f",
+];
 
-  fontFamily: "var(--font-sans), DM Sans, system-ui, sans-serif",
-  fontFamilyMonospace: "var(--font-mono), JetBrains Mono, monospace",
+// ─── Theme ────────────────────────────────────────────────────────────────────
 
-  headings: {
-    fontFamily: "var(--font-serif), Lora, Georgia, serif",
-    fontWeight: "500",
-    sizes: {
-      h1: { fontSize: rem(38), lineHeight: "1.15", fontWeight: "500" },
-      h2: { fontSize: rem(30), lineHeight: "1.25", fontWeight: "500" },
-      h3: { fontSize: rem(24), lineHeight: "1.3", fontWeight: "500" },
-      h4: { fontSize: rem(20), lineHeight: "1.4", fontWeight: "500" },
-      h5: { fontSize: rem(17), lineHeight: "1.5", fontWeight: "500" },
-      h6: { fontSize: rem(15), lineHeight: "1.6", fontWeight: "500" },
-    },
+export const theme: MantineThemeOverride = createTheme({
+  // Color scheme
+  primaryColor: "violet",
+  primaryShade: { light: 7, dark: 6 },
+
+  colors: {
+    violet,
+    dark,
+    quizGreen,
+    quizRed,
+    quizAmber,
   },
+
+  // ─── Typography ─────────────────────────────────────────────────────────────
+
+  fontFamily: "'Inter', 'Nunito', system-ui, sans-serif",
+  fontFamilyMonospace: "'JetBrains Mono', 'Fira Code', monospace",
 
   fontSizes: {
     xs: rem(11),
@@ -60,251 +107,350 @@ export const theme = createTheme({
   },
 
   lineHeights: {
-    xs: "1.5",
-    sm: "1.6",
-    md: "1.7",
-    lg: "1.7",
-    xl: "1.6",
+    xs: "1.4",
+    sm: "1.45",
+    md: "1.55",
+    lg: "1.6",
+    xl: "1.65",
   },
+
+  headings: {
+    fontFamily: "'Inter', 'Nunito', system-ui, sans-serif",
+    fontWeight: "700",
+    sizes: {
+      h1: { fontSize: rem(32), lineHeight: "1.2", fontWeight: "800" },
+      h2: { fontSize: rem(24), lineHeight: "1.3", fontWeight: "700" },
+      h3: { fontSize: rem(20), lineHeight: "1.35", fontWeight: "600" },
+      h4: { fontSize: rem(17), lineHeight: "1.4", fontWeight: "600" },
+      h5: { fontSize: rem(15), lineHeight: "1.45", fontWeight: "600" },
+      h6: { fontSize: rem(13), lineHeight: "1.5", fontWeight: "600" },
+    },
+  },
+
+  // ─── Spacing & Radius ───────────────────────────────────────────────────────
 
   spacing: {
     xs: rem(6),
     sm: rem(10),
     md: rem(16),
-    lg: rem(24),
-    xl: rem(40),
+    lg: rem(22),
+    xl: rem(32),
   },
 
   radius: {
     xs: rem(4),
-    sm: rem(6),
-    md: rem(10),
-    lg: rem(14),
-    xl: rem(20),
-    pill: rem(9999),
+    sm: rem(8),
+    md: rem(12),
+    lg: rem(16),
+    xl: rem(24),
   },
+
   defaultRadius: "md",
 
-  shadows: {
-    xs: "none",
-    sm: "none",
-    md: "none",
-    lg: "none",
-    xl: "none",
+  // ─── Breakpoints ────────────────────────────────────────────────────────────
+
+  breakpoints: {
+    xs: "30em",  // 480px
+    sm: "40em",  // 640px
+    md: "48em",  // 768px
+    lg: "64em",  // 1024px
+    xl: "80em",  // 1280px
   },
 
+  // ─── Other ──────────────────────────────────────────────────────────────────
+
+  cursorType: "pointer",
+  focusRing: "auto",
+  respectReducedMotion: true,
+
+  // ─── Component Overrides ────────────────────────────────────────────────────
+
   components: {
+
+    // App shell / layout
     AppShell: {
-      styles: { main: { backgroundColor: "#F2EFE8" } },
-    },
-    AppShellHeader: {
+      defaultProps: {
+        padding: "md",
+      },
       styles: {
-        header: {
-          backgroundColor: "#EFECE5",
-          borderBottom: "0.5px solid #D3D1C7",
-          boxShadow: "none",
+        main: {
+          background: "var(--mantine-color-dark-9)",
+          minHeight: "100vh",
         },
       },
     },
-    Button: {
-      defaultProps: { radius: "pill", size: "sm" },
+
+    // Card — quiz category tiles, result panels, leaderboard
+    Card: {
+      defaultProps: {
+        radius: "lg",
+        withBorder: true,
+        padding: "lg",
+      },
       styles: {
         root: {
-          fontWeight: 500,
+          backgroundColor: "var(--mantine-color-dark-7)",
+          borderColor: "var(--mantine-color-dark-5)",
+          transition: "border-color 150ms ease, background-color 150ms ease",
+          "&:hover": {
+            borderColor: "var(--mantine-color-violet-6)",
+            backgroundColor: "var(--mantine-color-dark-6)",
+          },
+        },
+      },
+    },
+
+    // Paper — generic surface (modals, sections)
+    Paper: {
+      defaultProps: {
+        radius: "md",
+        withBorder: true,
+      },
+      styles: {
+        root: {
+          backgroundColor: "var(--mantine-color-dark-7)",
+          borderColor: "var(--mantine-color-dark-5)",
+        },
+      },
+    },
+
+    // Button — primary CTA, answer options, navigation
+    Button: {
+      defaultProps: {
+        radius: "md",
+        size: "md",
+      },
+      styles: {
+        root: {
+          fontWeight: 600,
           letterSpacing: "0.01em",
+          transition: "transform 120ms ease, opacity 120ms ease",
+          "&:active": {
+            transform: "scale(0.97)",
+          },
         },
       },
     },
+
+    // Badge — category labels, difficulty tags, streak
+    Badge: {
+      defaultProps: {
+        radius: "xl",
+        variant: "filled",
+      },
+      styles: {
+        root: {
+          fontWeight: 600,
+          letterSpacing: "0.03em",
+          textTransform: "none",
+          fontSize: rem(11),
+        },
+      },
+    },
+
+    // Progress — XP bar, question progress
+    Progress: {
+      defaultProps: {
+        radius: "xl",
+        color: "violet",
+        size: "sm",
+      },
+      styles: {
+        root: {
+          backgroundColor: "var(--mantine-color-dark-5)",
+        },
+      },
+    },
+
+    // RingProgress — score circle, timer ring
+    RingProgress: {
+      defaultProps: {
+        roundCaps: true,
+      },
+    },
+
+    // TextInput — search, name entry
     TextInput: {
-      defaultProps: { radius: "pill" },
+      defaultProps: {
+        radius: "md",
+      },
       styles: {
         input: {
-          backgroundColor: "#FAFAF8",
-          border: "0.5px solid #D3D1C7",
-          color: "#2C2C2A",
-          "&::placeholder": { color: "#888780" },
-          "&:focus": { borderColor: "#B4B2A9" },
+          backgroundColor: "var(--mantine-color-dark-7)",
+          borderColor: "var(--mantine-color-dark-5)",
+          color: "var(--mantine-color-dark-0)",
+          "&::placeholder": {
+            color: "var(--mantine-color-dark-3)",
+          },
+          "&:focus": {
+            borderColor: "var(--mantine-color-violet-5)",
+          },
+        },
+        label: {
+          color: "var(--mantine-color-dark-2)",
+          marginBottom: rem(6),
+          fontSize: rem(13),
+          fontWeight: 500,
         },
       },
     },
-    Textarea: {
-      defaultProps: { radius: "md" },
-      styles: {
-        input: {
-          backgroundColor: "#FAFAF8",
-          border: "0.5px solid #D3D1C7",
-          color: "#2C2C2A",
-          "&::placeholder": { color: "#888780" },
-          "&:focus": { borderColor: "#B4B2A9" },
-        },
-      },
-    },
-    PasswordInput: {
-      defaultProps: { radius: "pill" },
-      styles: {
-        input: {
-          backgroundColor: "#FAFAF8",
-          border: "0.5px solid #D3D1C7",
-        },
-      },
-    },
+
+    // Select — difficulty, category dropdowns
     Select: {
-      defaultProps: { radius: "md" },
+      defaultProps: {
+        radius: "md",
+      },
       styles: {
         input: {
-          backgroundColor: "#FAFAF8",
-          border: "0.5px solid #D3D1C7",
-          color: "#2C2C2A",
+          backgroundColor: "var(--mantine-color-dark-7)",
+          borderColor: "var(--mantine-color-dark-5)",
+          color: "var(--mantine-color-dark-0)",
+          "&:focus": {
+            borderColor: "var(--mantine-color-violet-5)",
+          },
         },
         dropdown: {
-          backgroundColor: "#FAFAF8",
-          border: "0.5px solid #D3D1C7",
-          boxShadow: "none",
+          backgroundColor: "var(--mantine-color-dark-7)",
+          borderColor: "var(--mantine-color-dark-5)",
         },
         option: {
+          color: "var(--mantine-color-dark-1)",
           "&[data-selected]": {
-            backgroundColor: "#F5C4A0",
-            color: "#7A3E1F",
+            backgroundColor: "var(--mantine-color-violet-6)",
+            color: "#fff",
           },
-          "&:hover": { backgroundColor: "#EFECE5" },
-        },
-      },
-    },
-    Card: {
-      defaultProps: { radius: "lg", p: "lg" },
-      styles: {
-        root: {
-          backgroundColor: "#FFFFFF",
-          border: "0.5px solid #D3D1C7",
-          boxShadow: "none",
-        },
-      },
-    },
-    Paper: {
-      defaultProps: { radius: "lg" },
-      styles: {
-        root: {
-          backgroundColor: "#FAFAF8",
-          border: "0.5px solid #D3D1C7",
-          boxShadow: "none",
-        },
-      },
-    },
-    Badge: {
-      defaultProps: { radius: "pill", variant: "outline", size: "sm" },
-      styles: {
-        root: {
-          backgroundColor: "#EFECE5",
-          borderColor: "#D3D1C7",
-          borderWidth: "0.5px",
-          color: "#5F5E5A",
-          fontWeight: 500,
-          letterSpacing: "0.04em",
-          textTransform: "none",
-        },
-      },
-    },
-    Divider: {
-      styles: { root: { borderColor: "#D3D1C7", borderTopWidth: "0.5px" } },
-    },
-    NavLink: {
-      defaultProps: { radius: "md" },
-      styles: {
-        root: {
-          color: "#5F5E5A",
-          fontSize: rem(13),
-          "&:hover": { backgroundColor: "#EFECE5", color: "#2C2C2A" },
-          "&[data-active]": {
-            backgroundColor: "#E8E4DC",
-            color: "#2C2C2A",
-            fontWeight: 500,
+          "&[data-hovered]": {
+            backgroundColor: "var(--mantine-color-dark-6)",
           },
         },
       },
     },
-    Tabs: {
-      styles: {
-        tab: {
-          fontSize: rem(13),
-          color: "#888780",
-          borderBottomWidth: "0.5px",
-          "&:hover": { color: "#2C2C2A", backgroundColor: "transparent" },
-          "&[data-active]": {
-            color: "#2C2C2A",
-            borderBottomColor: "#D97B4F",
-            fontWeight: 500,
-          },
-        },
-        list: { borderBottomWidth: "0.5px", borderBottomColor: "#D3D1C7" },
-      },
-    },
-    Tooltip: {
-      defaultProps: { radius: "md" },
-      styles: {
-        tooltip: {
-          backgroundColor: "#2C2C2A",
-          color: "#FAFAF8",
-          fontSize: rem(12),
-          boxShadow: "none",
-        },
-      },
-    },
-    Menu: {
-      styles: {
-        dropdown: {
-          backgroundColor: "#FAFAF8",
-          border: "0.5px solid #D3D1C7",
-          boxShadow: "none",
-          borderRadius: rem(10),
-        },
-        item: {
-          fontSize: rem(13),
-          color: "#5F5E5A",
-          "&:hover": { backgroundColor: "#EFECE5", color: "#2C2C2A" },
-        },
-        divider: { borderColor: "#D3D1C7", borderTopWidth: "0.5px" },
-      },
-    },
+
+    // Modal — settings, result detail
     Modal: {
-      defaultProps: { radius: "lg" },
+      defaultProps: {
+        radius: "lg",
+        centered: true,
+        overlayProps: { blur: 4, opacity: 0.6 },
+      },
       styles: {
         content: {
-          backgroundColor: "#FAFAF8",
-          border: "0.5px solid #D3D1C7",
-          boxShadow: "none",
+          backgroundColor: "var(--mantine-color-dark-8)",
+          border: "1px solid var(--mantine-color-dark-5)",
         },
         header: {
-          backgroundColor: "#EFECE5",
-          borderBottom: "0.5px solid #D3D1C7",
+          backgroundColor: "var(--mantine-color-dark-8)",
+          borderBottom: "1px solid var(--mantine-color-dark-5)",
         },
-        title: { fontFamily: "var(--font-serif)", fontWeight: 500 },
-        overlay: { backgroundColor: "rgba(44, 44, 42, 0.35)" },
+        title: {
+          color: "var(--mantine-color-dark-0)",
+          fontWeight: 600,
+        },
+        close: {
+          color: "var(--mantine-color-dark-2)",
+          "&:hover": { backgroundColor: "var(--mantine-color-dark-6)" },
+        },
       },
     },
+
+    // Tabs — home navigation tabs
+    Tabs: {
+      defaultProps: {
+        radius: "md",
+        variant: "pills",
+      },
+      styles: {
+        tab: {
+          color: "var(--mantine-color-dark-2)",
+          fontWeight: 500,
+          "&[data-active]": {
+            backgroundColor: "var(--mantine-color-dark-6)",
+            color: "var(--mantine-color-dark-0)",
+          },
+          "&:hover": {
+            backgroundColor: "var(--mantine-color-dark-7)",
+          },
+        },
+      },
+    },
+
+    // Notification — correct/wrong feedback toasts
     Notification: {
-      defaultProps: { radius: "lg" },
+      defaultProps: {
+        radius: "md",
+        withBorder: true,
+      },
       styles: {
         root: {
-          backgroundColor: "#FAFAF8",
-          border: "0.5px solid #D3D1C7",
-          boxShadow: "none",
+          backgroundColor: "var(--mantine-color-dark-7)",
+          borderColor: "var(--mantine-color-dark-5)",
+        },
+        title: {
+          color: "var(--mantine-color-dark-0)",
+          fontWeight: 600,
+        },
+        description: {
+          color: "var(--mantine-color-dark-2)",
         },
       },
     },
-    Table: {
+
+    // Tooltip
+    Tooltip: {
+      defaultProps: {
+        radius: "sm",
+        withArrow: true,
+      },
       styles: {
-        thead: { borderBottom: "0.5px solid #D3D1C7" },
-        th: { fontSize: rem(12), color: "#888780", fontWeight: 500, letterSpacing: "0.04em" },
-        td: { fontSize: rem(13), color: "#2C2C2A", borderBottom: "0.5px solid #D3D1C7" },
-        tr: { "&:hover td": { backgroundColor: "#F2EFE8" } },
+        tooltip: {
+          backgroundColor: "var(--mantine-color-dark-5)",
+          color: "var(--mantine-color-dark-0)",
+          fontSize: rem(12),
+          fontWeight: 500,
+        },
       },
     },
-    Accordion: {
+
+    // Divider
+    Divider: {
       styles: {
-        item: { border: "0.5px solid #D3D1C7", borderRadius: rem(10), marginBottom: rem(6) },
-        control: { fontSize: rem(14), color: "#2C2C2A", "&:hover": { backgroundColor: "#EFECE5" } },
-        content: { fontSize: rem(13), color: "#5F5E5A" },
-        chevron: { color: "#888780" },
+        root: {
+          borderColor: "var(--mantine-color-dark-5)",
+        },
+      },
+    },
+
+    // ActionIcon — icon-only buttons
+    ActionIcon: {
+      defaultProps: {
+        radius: "md",
+        variant: "subtle",
+        color: "dark.2",
+      },
+      styles: {
+        root: {
+          "&:hover": {
+            backgroundColor: "var(--mantine-color-dark-6)",
+            color: "var(--mantine-color-dark-0)",
+          },
+        },
+      },
+    },
+
+    // Avatar — leaderboard player avatars
+    Avatar: {
+      defaultProps: {
+        radius: "xl",
+        color: "violet",
+        variant: "filled",
+      },
+    },
+
+    // Loader — spinner during question fetch
+    Loader: {
+      defaultProps: {
+        color: "violet",
+        type: "dots",
       },
     },
   },

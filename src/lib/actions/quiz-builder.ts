@@ -26,7 +26,6 @@ export type Action =
   | { type: "FETCH_SUCCESS"; categories: Record<string, Article[]> }
   | { type: "FETCH_NO_ARTICLES"; note?: string }
   | { type: "FETCH_ERROR"; error: string }
-  | { type: "SET_ACTIVE_TAB"; slug: string }
   | { type: "TOGGLE_ARTICLE"; slug: string; idx: number }
   | { type: "SELECT_ALL"; slug: string }
   | { type: "CLEAR_ALL"; slug: string }

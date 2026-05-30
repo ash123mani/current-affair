@@ -16,7 +16,7 @@ function DetailCard({ attempt }: { attempt: NonNullable<ReturnType<typeof useAtt
   const passed = pct >= ACCURACY_THRESHOLD;
 
   return (
-    <Paper withBorder p="xl" radius="lg" bg="white" mb="xl" ta="center" className="animate-scale">
+    <Paper withBorder p="xl" radius="lg" mb="xl" ta="center" className="animate-scale">
       <Group justify="center" mb="md">
         <RingProgress size={140} thickness={12} roundCaps
           sections={[{ value: pct, color: passed ? "green" : "red" }]}
@@ -24,7 +24,7 @@ function DetailCard({ attempt }: { attempt: NonNullable<ReturnType<typeof useAtt
         />
       </Group>
       <Title order={3}>{attempt.category.name}</Title>
-      <Text c="dimmed" size="sm" mb="md">{attempt.date}</Text>
+      <Text c="dark.2" size="sm" mb="md">{attempt.date}</Text>
       <Text size="lg" fw={600}>{attempt.score} / {attempt.total} correct</Text>
       <Badge color={passed ? "green" : "red"} size="lg" mt="sm" variant="light">
         {passed ? "Passed" : "Needs Improvement"}
@@ -51,7 +51,7 @@ function AnswerReview({
   const isWrongSelection = (optIdx: number) => isSelected(optIdx) && !answer.isCorrect;
 
   return (
-    <Paper withBorder p="lg" radius="lg" bg="white">
+    <Paper withBorder p="lg" radius="lg">
       <Group mb="sm">
         <Badge size="sm" variant="filled" color={answer.isCorrect ? "green" : "red"}>#{idx + 1}</Badge>
         <Badge color={answer.isCorrect ? "green" : "red"} size="sm" variant="light">
@@ -70,8 +70,8 @@ function AnswerReview({
               style={{ borderRadius: 8, border: `1px solid ${correctOpt ? "var(--mantine-color-green-6)" : wrongSel ? "var(--mantine-color-red-6)" : "transparent"}` }}
             >
               <Box className="opt-circle-sm"
-                bg={correctOpt ? "green.6" : wrongSel ? "red.6" : "gray.1"}
-                c={correctOpt || wrongSel ? "white" : "gray.6"}
+                bg={correctOpt ? "green.6" : wrongSel ? "red.6" : "dark.5"}
+                c={correctOpt || wrongSel ? "white" : "dark.3"}
               >
                 {optionLabels[optIdx]}
               </Box>
@@ -89,12 +89,12 @@ function AnswerReview({
         <>
           <Divider my="sm" />
           <Group gap="xs" align="flex-start" wrap="nowrap">
-              <Box className="opt-circle-sm" bg="indigo.6" c="white" mt={2}>
+              <Box className="opt-circle-sm" bg="violet.6" c="white" mt={2}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <circle cx="12" cy="12" r="10" /><path d="M12 16v-4" /><path d="M12 8h.01" />
               </svg>
             </Box>
-            <Text size="xs" c="dimmed">{answer.question.explanation}</Text>
+            <Text size="xs" c="dark.2">{answer.question.explanation}</Text>
           </Group>
         </>
       )}

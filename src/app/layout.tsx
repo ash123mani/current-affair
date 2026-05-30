@@ -39,7 +39,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={`${fontSans.variable} ${fontSerif.variable} ${fontMono.variable}`}>
       <body>
-        <MantineProvider theme={theme} defaultColorScheme="light">
+        <MantineProvider theme={theme} forceColorScheme="dark">
           <AuthProvider>
             <Notifications position="top-right" />
             <Navbar />

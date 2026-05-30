@@ -28,9 +28,9 @@ export function QuizBuilder() {
       )}
 
       {state.phase === "fetching" && (
-        <Paper withBorder p="xl" radius="lg" bg="white" mb="lg" ta="center" className="animate-fade">
-          <Loader size="sm" color="terracotta" mb="md" />
-          <Text size="sm" c="dimmed" fw={500}>Fetching articles from Indian news sources...</Text>
+        <Paper withBorder p="xl" radius="lg" mb="lg" ta="center" className="animate-fade">
+          <Loader size="sm" color="violet" mb="md" />
+          <Text size="sm" c="gray.5" fw={500}>Fetching articles from Indian news sources...</Text>
         </Paper>
       )}
 
@@ -39,9 +39,9 @@ export function QuizBuilder() {
       )}
 
       {state.phase === "no-articles" && (
-        <Paper withBorder p="xl" radius="lg" bg="white" mb="lg" ta="center" className="animate-up">
-          <Title order={3} mb="sm">No Articles Found</Title>
-          <Text c="dimmed" size="sm" mb="lg">Try a different date</Text>
+        <Paper withBorder p="xl" radius="lg" mb="lg" ta="center" className="animate-up">
+          <Title order={3} c="white" mb="sm">No Articles Found</Title>
+          <Text c="gray.5" size="sm" mb="lg">Try a different date</Text>
           <Button variant="light" onClick={actions.goBackToDate}>← Back</Button>
         </Paper>
       )}
@@ -50,10 +50,7 @@ export function QuizBuilder() {
         <CategoryTabs
           date={state.date}
           slugs={slugs}
-          activeTab={state.activeTab}
           tabs={state.tabs}
-          phase={state.phase}
-          onSetActiveTab={actions.setActiveTab}
           onSelectAll={actions.selectAll}
           onClearAll={actions.clearAll}
           onToggleArticle={actions.toggleArticle}

@@ -31,10 +31,7 @@ export async function POST(request: NextRequest) {
   }
 
   if (!category || typeof category !== "string") {
-    return new Response(sse({ error: "Category is required" }), {
-      status: 400,
-      headers: { "Content-Type": "text/event-stream" },
-    });
+    category = "mixed";
   }
 
   articles = articles.map((a: Record<string, unknown>) => ({

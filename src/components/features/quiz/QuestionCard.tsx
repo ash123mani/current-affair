@@ -11,7 +11,7 @@ const labels = ["A", "B", "C", "D"];
 
 export function QuestionCard({ question, selected, onSelect }: QuestionCardProps) {
   return (
-    <Paper withBorder p="xl" radius="md" mb="md" bg="white">
+    <Paper withBorder p="xl" radius="md" mb="md">
       <Text fw={600} size="lg" mb="xl" lh={1.6}>{question.text}</Text>
 
       <Stack gap="md">
@@ -25,15 +25,15 @@ export function QuestionCard({ question, selected, onSelect }: QuestionCardProps
               onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && onSelect(idx)}
               className="option-card"
               style={{
-                borderColor: isSelected ? "var(--mantine-color-terracotta-6)" : "var(--mantine-color-gray-3)",
-                background: isSelected ? "var(--mantine-color-terracotta-0)" : "white",
+                borderColor: isSelected ? "var(--mantine-color-violet-6)" : "var(--mantine-color-dark-5)",
+                background: isSelected ? "var(--mantine-color-violet-0)" : undefined,
               }}
             >
               <Group gap="md" wrap="nowrap">
                 <div className="opt-circle"
                   style={{
-                    background: isSelected ? "var(--mantine-color-terracotta-6)" : "var(--mantine-color-gray-1)",
-                    color: isSelected ? "white" : "var(--mantine-color-gray-6)",
+                    background: isSelected ? "var(--mantine-color-violet-6)" : "var(--mantine-color-dark-6)",
+                    color: isSelected ? "white" : "var(--mantine-color-dark-3)",
                   }}
                 >
                   {labels[idx]}

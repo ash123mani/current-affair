@@ -17,7 +17,7 @@ export function ResultView({
 
   return (
     <Container size="sm" py="xl">
-      <Paper withBorder p="xl" radius="lg" bg="white" mb="xl" ta="center">
+      <Paper withBorder p="xl" radius="lg" mb="xl" ta="center">
         <RingProgress size={140} thickness={12} roundCaps
           sections={[{ value: pct, color: passed ? "green" : "red" }]}
           label={<Text ta="center" fw={700} size="xl">{pct}%</Text>}
@@ -28,7 +28,7 @@ export function ResultView({
         </Badge>
         <Group grow mt="xl">
           {onRetake && (
-            <Button onClick={onRetake} variant="light" color="terracotta">Retake Quiz</Button>
+            <Button onClick={onRetake} variant="light" color="violet">Retake Quiz</Button>
           )}
           <Button onClick={onBackHome} variant="light">Back to Home</Button>
         </Group>

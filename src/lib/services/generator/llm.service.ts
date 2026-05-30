@@ -7,6 +7,7 @@ export interface GeneratedQuestion {
   explanation: string;
   articleTitle?: string;
   articleUrl?: string;
+  categorySlug?: string;
 }
 
 export interface LLMServiceConfig {
@@ -28,11 +29,42 @@ export class LLMService {
       this.client = new OpenAI({
         apiKey: key,
         baseURL: "https://integrate.api.nvidia.com/v1",
-        timeout: 60000,
+        timeout: 120000,
+        maxRetries: 0,
       });
     }
     this.model = config.model ?? "meta/llama-4-maverick-17b-128e-instruct";
-    this.maxRetries = config.maxRetries ?? 1;
+    this.maxRetries = config.maxRetries ?? 3;
+  }
+
+  private async sleep(ms: number) {
+    return new Promise((r) => setTimeout(r, ms));
+  }
+
+  private isRateLimit(error: unknown): boolean {
+    if (error instanceof OpenAI.APIError && error.status === 429) return true;
+    if (error instanceof Error && error.message.includes("429")) return true;
+    return false;
+  }
+
+  private async callWithRetry<T>(fn: () => Promise<T>): Promise<T> {
+    for (let attempt = 0; attempt <= this.maxRetries; attempt++) {
+      try {
+        return await fn();
+      } catch (error) {
+        const isLast = attempt === this.maxRetries;
+        if (this.isRateLimit(error) && !isLast) {
+          const baseMs = Math.min(1000 * Math.pow(2, attempt), 15000);
+          const jitter = Math.random() * 1000;
+          const wait = baseMs + jitter;
+          console.warn(`[LLMService] Rate limited (attempt ${attempt + 1}/${this.maxRetries + 1}), waiting ${Math.round(wait)}ms`);
+          await this.sleep(wait);
+          continue;
+        }
+        throw error;
+      }
+    }
+    throw new Error("callWithRetry exhausted");
   }
 
   private requireClient(): OpenAI {
@@ -63,6 +95,11 @@ export class LLMService {
         if (attempt === this.maxRetries) {
           throw new Error(`LLM generation failed after ${this.maxRetries + 1} attempts: ${error instanceof Error ? error.message : "Unknown error"}`);
         }
+        if (this.isRateLimit(error)) {
+          const baseMs = Math.min(1000 * Math.pow(2, attempt), 10000);
+          const jitter = Math.random() * 1000;
+          await this.sleep(baseMs + jitter);
+        }
       }
     }
 
@@ -72,37 +109,40 @@ export class LLMService {
   async generateQuestionsBatched(
     categoryName: string,
     date: string,
-    articles: { title: string; description: string; content?: string; source: string; url: string }[],
+    articles: { title: string; description: string; content?: string; source: string; url: string; categorySlug?: string }[],
     batchSize: number = 5,
     onBatch?: (questions: GeneratedQuestion[]) => void
   ): Promise<GeneratedQuestion[]> {
     const all: GeneratedQuestion[] = [];
-    const batches: { title: string; description: string; content?: string; source: string; url: string }[][] = [];
+    const batches: { title: string; description: string; content?: string; source: string; url: string; categorySlug?: string }[][] = [];
 
     for (let i = 0; i < articles.length; i += batchSize) {
       batches.push(articles.slice(i, i + batchSize));
     }
 
-    await Promise.all(
-      batches.map(async (batch) => {
-        const questions = await this.generateQuestions(categoryName, date, batch, batch.length * 2);
-        const tagged = questions.map((q) => {
-          const article = this.findBestArticle(q, batch);
-          return { ...q, articleTitle: article?.title, articleUrl: article?.url };
-        });
-        all.push(...tagged);
-        onBatch?.(tagged);
-      })
-    );
+    for (let i = 0; i < batches.length; i++) {
+      const batch = batches[i];
+      const questions = await this.generateQuestions(categoryName, date, batch, batch.length * 2);
+      const tagged = questions.map((q) => {
+        const article = this.findBestArticle(q, batch);
+        return { ...q, articleTitle: article?.title, articleUrl: article?.url, categorySlug: article?.categorySlug };
+      });
+      all.push(...tagged);
+      onBatch?.(tagged);
+
+      if (i < batches.length - 1) {
+        await this.sleep(500);
+      }
+    }
 
     return all;
   }
 
   private findBestArticle(
     question: GeneratedQuestion,
-    batch: { title: string; description: string; content?: string; source: string; url: string }[]
-  ): { title: string; url: string } | null {
-    if (batch.length === 1) return { title: batch[0].title, url: batch[0].url };
+    batch: { title: string; description: string; content?: string; source: string; url: string; categorySlug?: string }[]
+  ): { title: string; url: string; categorySlug?: string } | null {
+    if (batch.length === 1) return { title: batch[0].title, url: batch[0].url, categorySlug: batch[0].categorySlug };
 
     const qWords = new Set(question.text.toLowerCase().split(/\s+/).filter((w) => w.length > 3));
     let best = batch[0];
@@ -120,7 +160,7 @@ export class LLMService {
       }
     }
 
-    return { title: best.title, url: best.url };
+    return { title: best.title, url: best.url, categorySlug: best.categorySlug };
   }
 
   private buildPrompt(

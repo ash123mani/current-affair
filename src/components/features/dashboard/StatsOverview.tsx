@@ -9,7 +9,7 @@ interface StatsOverviewProps {
   streak: number;
 }
 
-const COLORS = ["terracotta", "teal", "blue", "orange"];
+const COLORS = ["violet", "teal", "blue", "orange"];
 
 function QuizIcon() {
   return (

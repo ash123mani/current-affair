@@ -1,7 +1,7 @@
 "use client";
 
 import {
-  Group, Button, Text, Container, Anchor, Avatar, Menu, UnstyledButton, Paper, Box, ActionIcon, Burger, Drawer, Stack, useMantineColorScheme,
+  Group, Button, Text, Container, Anchor, Avatar, Menu, UnstyledButton, Paper, Box, Burger, Drawer, Stack,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { useSession, signOut } from "next-auth/react";
@@ -40,36 +40,6 @@ function QuizIcon() {
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <circle cx="12" cy="12" r="10" /><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" /><line x1="12" y1="17" x2="12.01" y2="17" />
     </svg>
-  );
-}
-
-function ThemeToggle() {
-  const { colorScheme, toggleColorScheme } = useMantineColorScheme();
-  const isDark = colorScheme === "dark";
-
-  return (
-    <ActionIcon
-      onClick={toggleColorScheme}
-      variant="subtle"
-      color="warmGray"
-      size="sm"
-      aria-label="Toggle color scheme"
-      style={{ transition: "all 0.2s ease" }}
-    >
-      {isDark ? (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <circle cx="12" cy="12" r="5" />
-          <line x1="12" y1="1" x2="12" y2="3" /><line x1="12" y1="21" x2="12" y2="23" />
-          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" /><line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
-          <line x1="1" y1="12" x2="3" y2="12" /><line x1="21" y1="12" x2="23" y2="12" />
-          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" /><line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
-        </svg>
-      ) : (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
-        </svg>
-      )}
-    </ActionIcon>
   );
 }
 
@@ -119,7 +89,7 @@ export function Navbar() {
                   component={Link}
                   href={link.href}
                   variant={isActive ? "light" : "subtle"}
-                  color={isActive ? "terracotta" : "warmGray"}
+                  color={isActive ? "violet" : "gray"}
                   size="sm"
                   leftSection={<link.icon />}
                 >
@@ -131,12 +101,11 @@ export function Navbar() {
 
           <Group gap={4} wrap="nowrap">
             <Burger opened={mobileOpen} onClick={toggleMobile} size="sm" hiddenFrom="xs" aria-label="Toggle navigation" />
-            <ThemeToggle />
             {session?.user ? (
               <>
                 <Button
                   component={Link} href="/"
-                  variant="light" color="terracotta" size="sm"
+                  variant="light" color="violet" size="sm"
                   leftSection={<QuizIcon />} visibleFrom="xs"
                 >
                   New Quiz
@@ -171,12 +140,12 @@ export function Navbar() {
               </>
             ) : (
               <Group gap={6}>
-                <Button component={Link} href="/auth/login" variant="subtle" size="sm" color="warmGray">
+                <Button component={Link} href="/auth/login" variant="subtle" size="sm" color="dark.2">
                   Log in
                 </Button>
                 <Button
                   component={Link} href="/auth/signup" size="sm"
-                  variant="filled" color="terracotta"
+                  variant="filled" color="violet"
                 >
                   Sign up
                 </Button>
@@ -207,7 +176,7 @@ export function Navbar() {
                 component={Link}
                 href={link.href}
                 variant={isActive ? "light" : "subtle"}
-                color={isActive ? "terracotta" : "warmGray"}
+                color={isActive ? "violet" : "gray"}
                 size="sm"
                 fullWidth
                 justify="flex-start"
@@ -220,7 +189,7 @@ export function Navbar() {
           })}
           {session?.user && <Button
             component={Link} href="/"
-            variant="light" color="terracotta" size="sm"
+            variant="light" color="violet" size="sm"
             fullWidth justify="flex-start"
             leftSection={<QuizIcon />}
             onClick={closeMobile}

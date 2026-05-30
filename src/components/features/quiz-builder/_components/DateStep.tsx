@@ -7,11 +7,11 @@ import { subDays, format } from "date-fns";
 export function DateStep({ date, onSetDate, onFetch }: { date: Date; onSetDate: (d: Date) => void; onFetch: () => void }) {
   const quickOptions = [0, 1, 2, 3, 6];
   return (
-    <Paper withBorder p="xl" radius="lg" bg="white" mb="lg" className="animate-up">
-      <Title order={3} mb={4}>Select Date</Title>
-      <Text c="dimmed" size="sm" mb="lg">Choose a date to fetch articles from top Indian English news sources</Text>
+    <Paper withBorder p="xl" radius="lg" mb="lg" className="animate-up">
+      <Title order={3} c="white" mb={4}>Select Date</Title>
+      <Text c="gray.5" size="sm" mb="lg">Choose a date to fetch articles from top Indian English news sources</Text>
       <Divider mb="lg" />
-      <Text size="sm" fw={600} mb="sm">Date</Text>
+      <Text size="sm" fw={600} c="gray.4" mb="sm">Date</Text>
       <Group gap="xs" mb="lg" wrap="wrap">
         {quickOptions.map((d) => {
           const day = subDays(new Date(), d);
@@ -27,7 +27,7 @@ export function DateStep({ date, onSetDate, onFetch }: { date: Date; onSetDate: 
         <DatePickerInput value={date} onChange={(v) => { if (v) onSetDate(new Date(v)); }} placeholder="Pick date" size="sm" radius="xl" w={140} />
       </Group>
       <Group>
-        <Button size="md" variant="gradient" gradient={{ from: "terracotta", to: "terracotta", deg: 45 }} onClick={onFetch} ml="auto"
+        <Button size="md" variant="gradient" gradient={{ from: "violet", to: "violet.6", deg: 45 }} onClick={onFetch} ml="auto"
           rightSection={
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M5 12h14" /><path d="m12 5 7 7-7 7" />

@@ -29,15 +29,13 @@ export default function SignupPage() {
 
   return (
     <Container size={420} my={40}>
-      <Center mb="lg">
-        <LogoMark size={40} />
-      </Center>
+      <Center mb="lg"><LogoMark size={40} /></Center>
       <Title ta="center" order={2} style={{ fontFamily: "var(--font-serif)" }}>
         Create an account
       </Title>
-      <Text c="gray.5" size="sm" ta="center" mt={4}>
+      <Text c="dark.2" size="sm" ta="center" mt={4}>
         Already have an account?{" "}
-        <Anchor component={Link} href="/auth/login" size="sm" c="terracotta.5">
+        <Anchor component={Link} href="/auth/login" size="sm" c="violet.5">
           Log in
         </Anchor>
       </Text>
@@ -50,7 +48,7 @@ export default function SignupPage() {
             <PasswordInput label="Password" placeholder="At least 6 characters" required key={form.key("password")} {...form.getInputProps("password")} />
             <PasswordInput label="Confirm password" placeholder="Re-enter your password" required key={form.key("confirmPassword")} {...form.getInputProps("confirmPassword")} />
             {error && <Text c="red" size="sm">{error}</Text>}
-            <Button type="submit" fullWidth loading={loading} color="terracotta">
+            <Button type="submit" fullWidth loading={loading} color="violet">
               Create account
             </Button>
           </Stack>

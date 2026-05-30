@@ -21,15 +21,13 @@ export default function LoginPage() {
 
   return (
     <Container size={420} my={40}>
-      <Center mb="lg">
-        <LogoMark size={40} />
-      </Center>
+      <Center mb="lg"><LogoMark size={40} /></Center>
       <Title ta="center" order={2} style={{ fontFamily: "var(--font-serif)" }}>
         Welcome back
       </Title>
-      <Text c="gray.5" size="sm" ta="center" mt={4}>
+      <Text c="dark.2" size="sm" ta="center" mt={4}>
         Don&apos;t have an account?{" "}
-        <Anchor component={Link} href="/auth/signup" size="sm" c="terracotta.5">
+        <Anchor component={Link} href="/auth/signup" size="sm" c="violet.5">
           Sign up
         </Anchor>
       </Text>
@@ -54,7 +52,7 @@ export default function LoginPage() {
             {error && (
               <Text c="red" size="sm">{error}</Text>
             )}
-            <Button type="submit" fullWidth loading={loading} color="terracotta">
+            <Button type="submit" fullWidth loading={loading} color="violet">
               Sign in
             </Button>
           </Stack>
@@ -63,7 +61,7 @@ export default function LoginPage() {
         <Divider label="Or continue with" labelPosition="center" my="lg" />
         <Button
           variant="outline"
-          color="gray"
+          color="dark.4"
           fullWidth
           onClick={() => signIn("google", { callbackUrl: "/" })}
         >
