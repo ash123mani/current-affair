@@ -16,49 +16,11 @@
       <change afterPath="$PROJECT_DIR$/../image-2-doc/css/home-page.css" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/../video-chat-app/server.js" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/../wellfair/.idea/welfare.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources.local.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources.local.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev.db" beforeDir="false" afterPath="$PROJECT_DIR$/dev.db" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/app/admin/page.tsx" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/app/api/admin/populate/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/api/admin/populate/route.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/app/api/admin/questions/drafts/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/api/admin/questions/drafts/route.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/app/api/admin/questions/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/api/admin/questions/route.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/app/api/cron/populate/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/api/cron/populate/route.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/app/api/quiz/attempt/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/api/quiz/attempt/route.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/app/dashboard/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/dashboard/page.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/app/globals.css" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/globals.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/app/history/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/history/page.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/app/layout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/layout.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/app/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/page.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/app/quiz/[category]/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/quiz/[category]/page.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/features/admin/CategoriesPanel.tsx" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/features/admin/PopulatePanel.tsx" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/features/admin/QuestionsPanel.tsx" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/features/admin/ReviewPanel.tsx" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/features/dashboard/AccuracyChart.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/features/dashboard/AccuracyChart.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/features/dashboard/CategoryPerformance.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/features/dashboard/CategoryPerformance.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/features/dashboard/StatsOverview.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/features/dashboard/StatsOverview.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/features/quiz/QuestionCard.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/features/quiz/QuestionCard.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/features/quiz/QuizProgress.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/features/quiz/QuizProgress.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/features/quiz/QuizResult.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/features/quiz/QuizResult.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/layout/Navbar.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/layout/Navbar.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/ui/EmptyState.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/ui/EmptyState.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/ui/ErrorAlert.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/ui/ErrorAlert.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/ui/LoadingState.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/ui/LoadingState.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/ui/StatCard.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/ui/StatCard.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/constants/index.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/constants/index.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/hooks/use-quiz.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/hooks/use-quiz.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/lib/api/client.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/lib/api/client.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/lib/repositories/question.repository.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/lib/repositories/question.repository.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/lib/repositories/quiz.repository.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/lib/repositories/quiz.repository.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/lib/services/generator/llm.service.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/lib/services/generator/llm.service.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/lib/services/generator/news.service.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/lib/services/generator/news.service.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/lib/services/generator/populate.service.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/lib/services/generator/populate.service.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/lib/services/quiz.service.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/lib/services/quiz.service.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/lib/validations/populate.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/lib/validations/populate.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/lib/validations/quiz.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/lib/validations/quiz.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/types/api.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/types/api.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/prisma/dev.db" beforeDir="false" afterPath="$PROJECT_DIR$/prisma/dev.db" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -88,27 +50,28 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
-    &quot;last_opened_file_path&quot;: &quot;/Users/mani/Documents/studio/current-affair&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;com.github.continuedev.continueintellijextension.services.ContinueExtensionConfigurable&quot;,
-    &quot;ts.external.directory.path&quot;: &quot;/Users/mani/Documents/studio/current-affair/node_modules/typescript/lib&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "git-widget-placeholder": "main",
+    "last_opened_file_path": "/Users/mani/Documents/studio/current-affair",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "settings.editor.selected.configurable": "preferences.editor",
+    "ts.external.directory.path": "/Users/mani/Documents/studio/current-affair/node_modules/typescript/lib",
+    "vue.rearranger.settings.migration": "true"
   },
-  &quot;keyToStringList&quot;: {
-    &quot;DatabaseDriversLRU&quot;: [
-      &quot;sqlite&quot;
+  "keyToStringList": {
+    "DatabaseDriversLRU": [
+      "sqlite",
+      "postgresql"
     ]
   }
-}</component>
+}]]></component>
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
@@ -128,7 +91,11 @@
       <workItem from="1779783925062" duration="192000" />
       <workItem from="1779784120747" duration="121000" />
       <workItem from="1779784281189" duration="6766000" />
-      <workItem from="1779793379912" duration="6950000" />
+      <workItem from="1779793379912" duration="7167000" />
+      <workItem from="1779876104153" duration="1958000" />
+      <workItem from="1779898809158" duration="10240000" />
+      <workItem from="1780124019576" duration="3428000" />
+      <workItem from="1780205274454" duration="6081000" />
     </task>
     <servers />
   </component>
@@ -137,5 +104,16 @@
   </component>
   <component name="UnknownFeatures">
     <option featureType="com.intellij.fileTypeFactory" implementationName="*.db" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" type="javascript">
+          <url>file://$PROJECT_DIR$/src/app/quiz/[category]/page.tsx</url>
+          <line>2</line>
+          <option name="timeStamp" value="1" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
   </component>
 </project>
