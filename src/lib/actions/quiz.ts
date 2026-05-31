@@ -8,7 +8,6 @@ export type QuizAction =
   | { type: "QUESTIONS_SUCCESS"; questions: QuestionResponse[] }
   | { type: "QUESTIONS_ERROR"; error: string }
   | { type: "QUESTIONS_RESET" }
-  | { type: "UNAUTHORIZED" }
   | { type: "SUBMIT_LOADING" }
   | { type: "SUBMIT_SUCCESS"; result: QuizResult }
   | { type: "SUBMIT_ERROR"; error: string };
@@ -28,10 +27,6 @@ export async function loadQuestions(
     }
     throw new Error("No questions");
   } catch (err) {
-    if (err instanceof ApiClientError && err.status === 401) {
-      dispatch({ type: "UNAUTHORIZED" });
-      return;
-    }
     const stored = fallback?.();
     if (stored && stored.length > 0) {
       dispatch({ type: "QUESTIONS_SUCCESS", questions: stored });
@@ -46,7 +41,8 @@ export async function submitQuiz(
   date: string,
   answers: { questionId: string; selectedIndex: number }[],
   dispatch: Dispatch<QuizAction>,
-  retake?: boolean
+  retake?: boolean,
+  questions?: QuestionResponse[]
 ) {
   dispatch({ type: "SUBMIT_LOADING" });
   try {
@@ -54,6 +50,18 @@ export async function submitQuiz(
     dispatch({ type: "SUBMIT_SUCCESS", result });
     notifySuccess("Quiz submitted!", `${result.score}/${result.total} correct`);
   } catch (err) {
+    if (err instanceof ApiClientError && err.status === 401 && questions) {
+      let score = 0;
+      const scored = answers.map((a) => {
+        const q = questions.find((qq) => qq.id === a.questionId);
+        const isCorrect = q ? q.correctIndex === a.selectedIndex : false;
+        if (isCorrect) score++;
+        return { questionId: a.questionId, selectedIndex: a.selectedIndex, isCorrect };
+      });
+      const result: QuizResult = { score, total: answers.length, answers: scored };
+      dispatch({ type: "SUBMIT_SUCCESS", result });
+      return;
+    }
     const msg = err instanceof Error ? err.message : "Failed to submit quiz";
     dispatch({ type: "SUBMIT_ERROR", error: msg });
     notifyError("Submission failed", msg);

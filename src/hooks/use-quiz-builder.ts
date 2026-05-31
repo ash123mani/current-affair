@@ -39,7 +39,7 @@ export function useQuizBuilder() {
         sessionStorage.setItem("pendingQuizArticles", JSON.stringify(pending));
       } catch { /* storage full */ }
 
-      router.replace(`/quiz/generated?date=${dateStr}`);
+      router.replace(`/quiz/generated?date=${dateStr}&category=${pending.category}`);
     },
     [state.date, state.tabs, router]
   );

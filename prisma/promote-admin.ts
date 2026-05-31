@@ -1,5 +1,5 @@
 import { PrismaClient } from "@/generated/prisma/client";
-import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
+import { PrismaPg } from "@prisma/adapter-pg";
 
 const email = process.argv[2];
 
@@ -9,7 +9,7 @@ if (!email) {
 }
 
 async function main() {
-  const adapter = new PrismaBetterSqlite3({ url: "file:./dev.db" });
+  const adapter = new PrismaPg(process.env.DATABASE_URL!);
   const prisma = new PrismaClient({ adapter });
 
   const user = await prisma.user.findUnique({ where: { email } });

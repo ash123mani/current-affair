@@ -2,7 +2,7 @@
 
 import { use } from "react";
 import { useRouter } from "next/navigation";
-import { Container, Paper, Title, Text, Button, Stack, Group, Badge, Divider, RingProgress, Box } from "@mantine/core";
+import { Container, Paper, Title, Text, Button, Stack, Group, Badge, Divider, RingProgress, Box, Anchor } from "@mantine/core";
 import { useAttemptDetail } from "@/hooks/use-attempt-detail";
 import { LoadingSkeleton } from "@/components/ui/LoadingState";
 import { ErrorAlert } from "@/components/ui/ErrorAlert";
@@ -40,7 +40,7 @@ function AnswerReview({
   answer, idx,
 }: {
   answer: {
-    question: { text: string; options: string[]; correctIndex: number; explanation?: string | null };
+    question: { text: string; options: string[]; correctIndex: number; explanation?: string | null; source?: string | null; articleUrl?: string | null };
     selectedIndex: number;
     isCorrect: boolean;
   };
@@ -57,6 +57,11 @@ function AnswerReview({
         <Badge color={answer.isCorrect ? "green" : "red"} size="sm" variant="light">
           {answer.isCorrect ? "Correct" : "Wrong"}
         </Badge>
+        {answer.question.source && (
+          <Badge size="sm" variant="outline" color="dark.3" radius="xl">
+            {answer.question.source}
+          </Badge>
+        )}
       </Group>
       <Text fw={500} size="sm" mb="md">{answer.question.text}</Text>
       <Stack gap={6}>
@@ -97,6 +102,17 @@ function AnswerReview({
             <Text size="xs" c="dark.2">{answer.question.explanation}</Text>
           </Group>
         </>
+      )}
+      {answer.question.articleUrl && (
+        <Group mt="sm" gap="xs">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--mantine-color-dark-3)" strokeWidth="2">
+            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+            <polyline points="15 3 21 3 21 9" /><line x1="10" y1="14" x2="21" y2="3" />
+          </svg>
+          <Anchor href={answer.question.articleUrl} target="_blank" rel="noopener noreferrer" size="xs" c="dark.3">
+            Read source article
+          </Anchor>
+        </Group>
       )}
     </Paper>
   );

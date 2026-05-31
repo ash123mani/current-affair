@@ -1,7 +1,7 @@
 import "dotenv/config";
 import { subDays, format } from "date-fns";
 import { PrismaClient } from "../src/generated/prisma/client";
-import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
+import { PrismaPg } from "@prisma/adapter-pg";
 
 interface Article {
   title: string;
@@ -73,9 +73,7 @@ const CATEGORIES: { slug: string; name: string }[] = [
 ];
 
 async function main() {
-  const adapter = new PrismaBetterSqlite3({
-    url: process.env["DATABASE_URL"] ?? "file:./dev.db",
-  });
+  const adapter = new PrismaPg(process.env.DATABASE_URL!);
   const prisma = new PrismaClient({ adapter });
 
   for (let i = 1; i <= 7; i++) {

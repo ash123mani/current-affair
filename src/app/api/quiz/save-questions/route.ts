@@ -31,9 +31,6 @@ async function ensureCategory(slug: string): Promise<{ id: string }> {
 export async function POST(request: NextRequest) {
   try {
     const session = await auth();
-    if (!session?.user?.id) {
-      return err(new AppError("Unauthorized", 401));
-    }
 
     const body = await request.json().catch(() => ({}));
     const { category: categorySlug, date, questions } = body;
@@ -48,19 +45,34 @@ export async function POST(request: NextRequest) {
       return err(new AppError("questions array is required", 400));
     }
 
-    const category = await ensureCategory(categorySlug);
+    if (!session?.user?.id) {
+      return ok({ questions: [], count: 0, date, category: categorySlug, saved: false }, 201);
+    }
 
-    const saved: { id: string; text: string; options: string; correctIndex: number; explanation: string | null; source: string | null }[] = [];
+    // Cache category lookups to avoid repeated DB queries
+    const categoryCache = new Map<string, { id: string }>();
+    async function getCategory(slug: string): Promise<{ id: string }> {
+      const cached = categoryCache.get(slug);
+      if (cached) return cached;
+      const cat = await ensureCategory(slug);
+      categoryCache.set(slug, cat);
+      return cat;
+    }
+
+    const saved: { id: string; text: string; options: string; correctIndex: number; explanation: string | null; source: string | null; categoryId: string }[] = [];
 
     for (const q of questions) {
+      const qCategorySlug = q.categorySlug || categorySlug;
+      const cat = await getCategory(qCategorySlug);
       const data: CreateQuestionData = {
-        categoryId: category.id,
+        categoryId: cat.id,
         date,
         text: String(q.text ?? ""),
         options: JSON.stringify(q.options ?? []),
         correctIndex: Number(q.correctIndex) ?? 0,
         explanation: q.explanation ? String(q.explanation) : undefined,
         source: q.articleTitle ? String(q.articleTitle) : undefined,
+        articleUrl: q.articleUrl ? String(q.articleUrl) : undefined,
         status: "published",
       };
       if (!data.text) continue;
@@ -72,7 +84,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    return ok({ questions: saved, count: saved.length, date, category: categorySlug }, 201);
+    return ok({ questions: saved, count: saved.length, date, category: categorySlug, saved: true }, 201);
   } catch (error) {
     return err(error);
   }

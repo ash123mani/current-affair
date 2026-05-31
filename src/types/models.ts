@@ -16,6 +16,7 @@ export interface QuestionModel {
   correctIndex: number;
   explanation: string | null;
   source: string | null;
+  articleUrl: string | null;
   createdAt: string;
 }
 

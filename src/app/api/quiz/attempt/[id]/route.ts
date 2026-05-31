@@ -24,13 +24,15 @@ export async function GET(
       questionId: a.questionId,
       selectedIndex: a.selectedIndex,
       isCorrect: a.isCorrect,
-      question: {
-        id: a.question.id,
-        text: a.question.text,
-        options: JSON.parse(a.question.options) as string[],
-        correctIndex: a.question.correctIndex,
-        explanation: a.question.explanation,
-      },
+        question: {
+          id: a.question.id,
+          text: a.question.text,
+          options: JSON.parse(a.question.options) as string[],
+          correctIndex: a.question.correctIndex,
+          explanation: a.question.explanation,
+          source: a.question.source,
+          articleUrl: a.question.articleUrl,
+        },
     }));
 
     return ok({

@@ -1,17 +1,11 @@
 import { NextRequest } from "next/server";
-import { auth } from "@/lib/auth";
 import { indianNewsService } from "@/lib/services/generator/indian-news.service";
 import { ok, err } from "@/lib/api-response";
-import { AppError } from "@/lib/errors";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
 export async function GET(request: NextRequest) {
-  const session = await auth();
-  if (!session?.user?.id) {
-    return err(new AppError("Unauthorized", 401));
-  }
   try {
     const date = request.nextUrl.searchParams.get("date");
     if (!date) {

@@ -10,6 +10,7 @@ export const API_ROUTES = {
   QUIZ_GENERATE: "/api/quiz/generate",
   QUIZ_GENERATE_STREAM: "/api/quiz/generate-stream",
   QUIZ_SAVE_QUESTIONS: "/api/quiz/save-questions",
+  QUIZ_SESSION: "/api/quiz/session",
 } as const;
 
 export const PAGINATION = {

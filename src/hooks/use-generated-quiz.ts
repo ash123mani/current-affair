@@ -1,6 +1,7 @@
 "use client";
 
 import { useReducer, useCallback, useEffect, useMemo, useRef } from "react";
+import { useSession } from "next-auth/react";
 import { api } from "@/lib/api/client";
 import { notifySuccess, notifyError } from "@/lib/notify";
 import type { GeneratedQuestion } from "@/lib/services/generator/llm.service";
@@ -13,6 +14,8 @@ export interface QuestionData {
   correctIndex: number;
   explanation?: string | null;
   categorySlug?: string;
+  source?: string | null;
+  articleUrl?: string | null;
 }
 
 interface StoredQuiz {
@@ -38,6 +41,7 @@ type State = {
   streaming: boolean;
   submitting: boolean;
   error: string | null;
+  restoredIndex: number | null;
 };
 
 type Action =
@@ -51,7 +55,8 @@ type Action =
   | { type: "SUBMIT_LOADING" }
   | { type: "SUBMIT_SUCCESS"; score: number; total: number; answerResults: boolean[] }
   | { type: "SUBMIT_ERROR"; error: string }
-  | { type: "RETAKE" };
+  | { type: "RETAKE" }
+  | { type: "RESTORE_SESSION"; questions: QuestionData[]; selected: Record<number, number>; currentIndex: number };
 
 const INITIAL: State = {
   questions: [],
@@ -64,6 +69,7 @@ const INITIAL: State = {
   streaming: false,
   submitting: false,
   error: null,
+  restoredIndex: null,
 };
 
 function reducer(state: State, action: Action): State {
@@ -87,11 +93,25 @@ function reducer(state: State, action: Action): State {
 
     case "QUESTIONS_SUCCESS": {
       const ids: Record<number, string> = {};
-      action.questions.forEach((q, i) => {
-        if (q.id) ids[i] = q.id;
+      const mapped = action.questions.map((q, i) => {
+        const qq = { ...q } as QuestionData & { category?: { slug: string } };
+        if ((qq as { category?: { slug: string } }).category?.slug && !qq.categorySlug) {
+          qq.categorySlug = (qq as { category?: { slug: string } }).category!.slug;
+        }
+        if (qq.id) ids[i] = qq.id;
+        return qq;
       });
-      return { ...state, questions: action.questions, questionIds: ids, loading: false };
+      return { ...state, questions: mapped, questionIds: ids, loading: false };
     }
+
+    case "RESTORE_SESSION":
+      return {
+        ...state,
+        questions: action.questions,
+        selected: action.selected,
+        restoredIndex: action.currentIndex,
+        loading: false,
+      };
 
     case "QUESTIONS_ERROR":
       return { ...state, loading: false, error: action.error };
@@ -143,14 +163,29 @@ function loadStored(): StoredQuiz | null {
   }
 }
 
-export function useGeneratedQuiz(category: string | null, date: string | null) {
+export function useGeneratedQuiz(category: string | null, date: string | null, sessionId?: string | null) {
   const [state, dispatch] = useReducer(reducer, INITIAL);
+  const { data: session } = useSession();
   const cancelRef = useRef<(() => void) | null>(null);
   const startedRef = useRef(false);
 
   useEffect(() => {
     if (startedRef.current) return;
     startedRef.current = true;
+
+    // If resuming from a paused session, restore state directly
+    if (sessionId && session?.user) {
+      api.quizSession.get(sessionId)
+        .then((data) => {
+          const questions = (data.questions ?? []) as QuestionData[];
+          const selected = (data.selectedAnswers ?? {}) as Record<number, number>;
+          dispatch({ type: "RESTORE_SESSION", questions, selected, currentIndex: data.currentIndex });
+        })
+        .catch(() => {
+          dispatch({ type: "QUESTIONS_ERROR", error: "Failed to load paused session" });
+        });
+      return;
+    }
 
     const stored = loadStored();
     if (stored) {
@@ -170,9 +205,53 @@ export function useGeneratedQuiz(category: string | null, date: string | null) {
         (batch) => {
           dispatch({ type: "STREAM_BATCH", batch: batch.questions as QuestionData[], total: batch.totalQuestions });
         },
-        (all) => {
+        async (all) => {
+          if (session?.user?.id) {
+            try {
+              const saved = await api.quiz.saveQuestions(pending.category, pending.date, all);
+              if (saved.questions?.length > 0) {
+                const textToId: Record<string, string> = {};
+                for (const q of saved.questions) {
+                  textToId[q.text] = q.id;
+                }
+                dispatch({
+                  type: "QUESTIONS_SUCCESS",
+                  questions: (all as QuestionData[]).map((q) => ({
+                    ...q,
+                    id: textToId[q.text] || undefined,
+                    categorySlug: q.categorySlug || pending.category,
+                  })),
+                });
+                dispatch({ type: "STREAM_DONE" });
+                return;
+              }
+            } catch {
+              // fall through
+            }
+            // Questions may already exist in DB (duplicates skipped).
+            // Reload from DB across all article categories to get their IDs.
+            try {
+              const slugs = [...new Set(all.map((q: QuestionData) => q.categorySlug || pending.category))];
+              const textToId: Record<string, string> = {};
+              for (const slug of slugs) {
+                const dbQ = await api.questions.list(slug, pending.date);
+                for (const q of dbQ) {
+                  if (q.id) textToId[q.text] = q.id;
+                }
+              }
+              if (Object.keys(textToId).length > 0) {
+                dispatch({
+                  type: "QUESTIONS_SUCCESS",
+                  questions: (all as QuestionData[]).map((q) => ({
+                    ...q,
+                    id: textToId[q.text] || undefined,
+                    categorySlug: q.categorySlug || pending.category,
+                  })),
+                });
+              }
+            } catch {}
+          }
           dispatch({ type: "STREAM_DONE" });
-          api.quiz.saveQuestions(pending.category, pending.date, all).catch(() => {});
         },
         (errMsg) => {
           dispatch({ type: "STREAM_ERROR", error: errMsg });
@@ -205,16 +284,50 @@ export function useGeneratedQuiz(category: string | null, date: string | null) {
   const allAnswered = state.questions.length > 0 && state.questions.every((_, i) => state.selected[i] !== undefined);
 
   const handleSubmit = useCallback(async () => {
-    const useApi = category && date && Object.keys(state.questionIds).length > 0;
+    let ids = state.questionIds;
+    let effectiveCategory = category;
 
-    if (useApi) {
+    if (!effectiveCategory) {
+      try {
+        const stored = sessionStorage.getItem("pendingQuizArticles");
+        if (stored) {
+          const pending = JSON.parse(stored);
+          if (pending.category) effectiveCategory = pending.category;
+        }
+      } catch {}
+    }
+
+    // Reload question IDs from DB if any questions are missing their ID
+    if (effectiveCategory && date && state.questions.length > Object.keys(ids).length) {
+      try {
+        // Collect unique category slugs from questions
+        const slugs = [...new Set(state.questions.map((q) => q.categorySlug || effectiveCategory))];
+        const textToId: Record<string, string> = {};
+        for (const slug of slugs) {
+          const dbQ = await api.questions.list(slug, date);
+          for (const q of dbQ) {
+            if (q.id) textToId[q.text] = q.id;
+          }
+        }
+        if (Object.keys(textToId).length > 0) {
+          const newIds: Record<number, string> = {};
+          state.questions.forEach((q, i) => {
+            if (q.id) newIds[i] = q.id;
+            else if (textToId[q.text]) newIds[i] = textToId[q.text];
+          });
+          ids = newIds;
+        }
+      } catch {}
+    }
+
+    if (effectiveCategory && date && Object.keys(ids).length > 0) {
       dispatch({ type: "SUBMIT_LOADING" });
       try {
         const answers = Object.entries(state.selected).map(([idx, selectedIndex]) => ({
-          questionId: state.questionIds[Number(idx)],
+          questionId: ids[Number(idx)],
           selectedIndex,
         }));
-        const result: QuizResult = await api.quiz.attempt(category!, date!, answers);
+        const result: QuizResult = await api.quiz.attempt(effectiveCategory, date, answers);
         dispatch({
           type: "SUBMIT_SUCCESS",
           score: result.answers.filter((a) => a.isCorrect).length,

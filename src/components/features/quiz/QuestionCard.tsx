@@ -1,4 +1,4 @@
-import { Paper, Text, Stack, Group } from "@mantine/core";
+import { Paper, Text, Stack, Group, Badge, Anchor } from "@mantine/core";
 import type { QuestionResponse } from "@/types/api";
 
 interface QuestionCardProps {
@@ -12,6 +12,17 @@ const labels = ["A", "B", "C", "D"];
 export function QuestionCard({ question, selected, onSelect }: QuestionCardProps) {
   return (
     <Paper withBorder p="xl" radius="md" mb="md">
+      <Group mb="md" gap="xs" wrap="wrap">
+        <Badge size="sm" variant="light" color="violet" radius="xl">
+          {question.category.name}
+        </Badge>
+        {question.source && (
+          <Badge size="sm" variant="outline" color="dark.3" radius="xl">
+            {question.source}
+          </Badge>
+        )}
+      </Group>
+
       <Text fw={600} size="lg" mb="xl" lh={1.6}>{question.text}</Text>
 
       <Stack gap="md">
@@ -44,6 +55,18 @@ export function QuestionCard({ question, selected, onSelect }: QuestionCardProps
           );
         })}
       </Stack>
+
+      {question.articleUrl && (
+        <Group mt="md" gap="xs">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--mantine-color-dark-3)" strokeWidth="2">
+            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+            <polyline points="15 3 21 3 21 9" /><line x1="10" y1="14" x2="21" y2="3" />
+          </svg>
+          <Anchor href={question.articleUrl} target="_blank" rel="noopener noreferrer" size="xs" c="dark.3">
+            Read source article
+          </Anchor>
+        </Group>
+      )}
     </Paper>
   );
 }

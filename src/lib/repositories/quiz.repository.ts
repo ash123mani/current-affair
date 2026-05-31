@@ -122,7 +122,7 @@ export const quizRepository = {
         answers: {
           include: {
             question: {
-              select: { id: true, text: true, options: true, correctIndex: true, explanation: true },
+              select: { id: true, text: true, options: true, correctIndex: true, explanation: true, source: true, articleUrl: true },
             },
           },
         },

@@ -16,7 +16,7 @@ export class QuestionService {
     const category = await this.categoryRepo.findBySlug(categorySlug);
     if (!category) throw new NotFoundError("Category");
 
-    const questions = await this.questionRepo.findByCategoryAndDate(
+    const questions = await this.questionRepo.findFullByCategoryAndDate(
       category.id,
       date
     );

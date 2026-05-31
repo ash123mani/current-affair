@@ -7,7 +7,7 @@ export function ResultView({
   score, total, questions, selected, onBackHome, onRetake,
 }: {
   score: number; total: number;
-  questions: { text: string; options: string[]; correctIndex: number; explanation?: string | null }[];
+  questions: { text: string; options: string[]; correctIndex: number; explanation?: string | null; categorySlug?: string | null; articleUrl?: string | null }[];
   selected: Record<number, number>;
   onBackHome: () => void;
   onRetake?: () => void;

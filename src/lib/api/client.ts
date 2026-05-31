@@ -166,6 +166,54 @@ export const api = {
     },
   },
 
+  quizSession: {
+    pause: (data: {
+      quizType: string;
+      categoryId?: string;
+      categorySlug?: string;
+      date?: string;
+      currentIndex: number;
+      selectedAnswers: Record<string, number>;
+      questions: unknown[];
+      timeRemaining?: number;
+    }) => request<{ id: string }>(API_ROUTES.QUIZ_SESSION, { method: "POST", body: data }),
+
+    list: () => request<{ sessions: {
+      id: string;
+      quizType: string;
+      categorySlug: string | null;
+      date: string | null;
+      currentIndex: number;
+      questionsCount: number;
+      selectedCount: number;
+      timeRemaining: number | null;
+      createdAt: string;
+      updatedAt: string;
+    }[] }>(API_ROUTES.QUIZ_SESSION),
+
+    get: (id: string) => request<{
+      id: string;
+      quizType: string;
+      categorySlug: string | null;
+      date: string | null;
+      currentIndex: number;
+      selectedAnswers: Record<string, number>;
+      questions: unknown[];
+      timeRemaining: number | null;
+      createdAt: string;
+      updatedAt: string;
+    }>(`${API_ROUTES.QUIZ_SESSION}/${id}`),
+
+    update: (id: string, data: {
+      currentIndex?: number;
+      selectedAnswers?: Record<string, number>;
+      questions?: unknown[];
+      timeRemaining?: number;
+    }) => request<{ id: string }>(`${API_ROUTES.QUIZ_SESSION}/${id}`, { method: "PUT", body: data }),
+
+    remove: (id: string) => request<{ deleted: boolean }>(`${API_ROUTES.QUIZ_SESSION}/${id}`, { method: "DELETE" }),
+  },
+
   auth: {
     signup: (input: SignupInput) =>
       request<{ success: boolean }>(API_ROUTES.SIGNUP, {

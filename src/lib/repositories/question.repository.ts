@@ -16,6 +16,7 @@ export interface CreateQuestionData {
   correctIndex: number;
   explanation?: string;
   source?: string;
+  articleUrl?: string;
   status?: QuestionStatus;
 }
 
@@ -28,6 +29,8 @@ export const questionRepository = {
         text: true,
         options: true,
         date: true,
+        source: true,
+        articleUrl: true,
         category: { select: { name: true, slug: true } },
       },
     }),
@@ -47,6 +50,12 @@ export const questionRepository = {
 
   findById: (id: string) =>
     prisma.question.findUnique({ where: { id }, include: { category: { select: { name: true, slug: true } } } }),
+
+  findFullByIds: (ids: string[]) =>
+    prisma.question.findMany({
+      where: { id: { in: ids }, status: QUESTION_STATUS.PUBLISHED },
+      include: { category: { select: { name: true, slug: true } } },
+    }),
 
   findDraftQuestions: (date?: string) =>
     prisma.question.findMany({
@@ -71,16 +80,17 @@ export const questionRepository = {
 
   update: (
     id: string,
-    data: {
-      text?: string;
-      options?: string;
-      correctIndex?: number;
-      explanation?: string;
-      source?: string;
-      status?: QuestionStatus;
-      date?: string;
-      categoryId?: string;
-    }
+      data: {
+        text?: string;
+        options?: string;
+        correctIndex?: number;
+        explanation?: string;
+        source?: string;
+        articleUrl?: string;
+        status?: QuestionStatus;
+        date?: string;
+        categoryId?: string;
+      }
   ) => prisma.question.update({ where: { id }, data }),
 
   updateStatus: (id: string, status: QuestionStatus) =>

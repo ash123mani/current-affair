@@ -48,12 +48,15 @@ export function Navbar() {
   const pathname = usePathname();
   const [mobileOpen, { toggle: toggleMobile, close: closeMobile }] = useDisclosure(false);
 
+  if (pathname.startsWith("/quiz/")) return null;
+
   const navLinks = [
     { href: "/", label: "Home", icon: HomeIcon },
     ...(session?.user
       ? [
           { href: "/dashboard", label: "Dashboard", icon: DashboardIcon },
           { href: "/history", label: "History", icon: HistoryIcon },
+          { href: "/sessions", label: "Paused", icon: HistoryIcon },
         ]
       : []),
   ];
@@ -101,15 +104,15 @@ export function Navbar() {
 
           <Group gap={4} wrap="nowrap">
             <Burger opened={mobileOpen} onClick={toggleMobile} size="sm" hiddenFrom="xs" aria-label="Toggle navigation" />
+            <Button
+              component={Link} href="/"
+              variant="light" color="violet" size="sm"
+              leftSection={<QuizIcon />} visibleFrom="xs"
+            >
+              New Quiz
+            </Button>
             {session?.user ? (
               <>
-                <Button
-                  component={Link} href="/"
-                  variant="light" color="violet" size="sm"
-                  leftSection={<QuizIcon />} visibleFrom="xs"
-                >
-                  New Quiz
-                </Button>
                 <Menu shadow="md" width={200} radius="md" position="bottom-end">
                   <Menu.Target>
                     <UnstyledButton>
@@ -129,6 +132,9 @@ export function Navbar() {
                     <Menu.Label>{session.user.name ?? session.user.email}</Menu.Label>
                     <Menu.Item component={Link} href="/dashboard" leftSection={<DashboardIcon />}>
                       Dashboard
+                    </Menu.Item>
+                    <Menu.Item component={Link} href="/sessions" leftSection={<HistoryIcon />}>
+                      Paused Games
                     </Menu.Item>
                     <Menu.Item component={Link} href="/history" leftSection={<HistoryIcon />}>
                       History

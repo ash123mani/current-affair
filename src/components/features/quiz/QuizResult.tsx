@@ -1,4 +1,4 @@
-import { Container, Paper, Title, Text, Button, Stack, Group, Badge, Divider, RingProgress } from "@mantine/core";
+import { Container, Paper, Title, Text, Button, Stack, Group, Badge, Divider, RingProgress, Anchor } from "@mantine/core";
 import { ACCURACY_THRESHOLD } from "@/constants";
 import type { QuestionResponse } from "@/types/api";
 
@@ -65,6 +65,9 @@ export function QuizResultView({
                 <Badge color={isCorrect ? "green" : "red"} size="sm" variant="light">
                   {isCorrect ? "Correct" : "Wrong"}
                 </Badge>
+                <Badge size="sm" variant="light" color="violet" radius="xl">
+                  {q.category.name}
+                </Badge>
               </Group>
 
               <Text fw={500} size="sm" mb="md">{q.text}</Text>
@@ -118,6 +121,18 @@ export function QuizResultView({
                     <Text size="xs" c="dark.2">{q.explanation}</Text>
                   </Group>
                 </>
+              )}
+
+              {q.articleUrl && (
+                <Group mt="sm" gap="xs">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--mantine-color-dark-3)" strokeWidth="2">
+                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                    <polyline points="15 3 21 3 21 9" /><line x1="10" y1="14" x2="21" y2="3" />
+                  </svg>
+                  <Anchor href={q.articleUrl} target="_blank" rel="noopener noreferrer" size="xs" c="dark.3">
+                    Read source article
+                  </Anchor>
+                </Group>
               )}
             </Paper>
           );

@@ -5,7 +5,7 @@ import { quizRepository } from "../repositories/quiz.repository";
 import type { TxFindAttempt, TxDeleteAttempt, TxCreateAttempt } from "../repositories/quiz.repository";
 
 type CategoryRepo = Pick<typeof categoryRepository, "findBySlug">;
-type QuestionRepo = Pick<typeof questionRepository, "findFullByCategoryAndDate">;
+type QuestionRepo = Pick<typeof questionRepository, "findFullByIds">;
 type TxQuizRepo = {
   findAttempt: TxFindAttempt;
   deleteAttempt: TxDeleteAttempt;
@@ -30,10 +30,8 @@ export class QuizService {
     const category = await this.categoryRepo.findBySlug(categorySlug);
     if (!category) throw new NotFoundError("Category");
 
-    const questions = await this.questionRepo.findFullByCategoryAndDate(
-      category.id,
-      date
-    );
+    const questionIds = [...new Set(answers.map((a) => a.questionId))];
+    const questions = await this.questionRepo.findFullByIds(questionIds);
 
     let score = 0;
     const answerData = answers.map((a) => {

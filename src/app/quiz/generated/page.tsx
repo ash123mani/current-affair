@@ -2,14 +2,15 @@
 
 import { Suspense, useRef, useState, useCallback, useEffect, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Container, Title, Text, Button, Stack, Paper, Group, Box, Badge, ActionIcon, Modal } from "@mantine/core";
+import { useSession } from "next-auth/react";
+import { Container, Title, Text, Button, Stack, Paper, Group, Box, Badge, Modal, Anchor } from "@mantine/core";
 import { useGeneratedQuiz } from "@/hooks/use-generated-quiz";
+import type { QuestionData } from "@/hooks/use-generated-quiz";
+import { api } from "@/lib/api/client";
 import { QuizProgressDots } from "./_components/QuizProgressDots";
 import { QuizTimer } from "@/components/ui/QuizTimer";
 import { ResultView } from "./_components/ResultView";
 import { CATEGORIES } from "@/constants/categories";
-import type { QuestionData } from "@/hooks/use-generated-quiz";
-
 const optionLabels = ["A", "B", "C", "D"];
 
 const CATEGORY_MAP: Record<string, { name: string; color: string }> = {};
@@ -219,29 +220,43 @@ function SwipeableCard({
         })}
       </Stack>
 
-      <Box mt="xl">
-        <Button
-          fullWidth
-          size="md"
-          variant={answered ? 'filled' : 'light'}
-          color="violet"
-          disabled={!answered}
-          onClick={() => { if (answered) onNext(); }}
-          rightSection={
-            isLast ? null : (
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M5 12h14" /><path d="m12 5 7 7-7 7" />
-              </svg>
-            )
-          }
-        >
-          {isLast ? 'Review & Submit' : answered ? 'Next Question' : 'Select an answer'}
-        </Button>
-      </Box>
+      {question.articleUrl && (
+        <Group mt="md" gap="xs">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--mantine-color-dark-3)" strokeWidth="2">
+            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+            <polyline points="15 3 21 3 21 9" /><line x1="10" y1="14" x2="21" y2="3" />
+          </svg>
+          <Anchor href={question.articleUrl} target="_blank" rel="noopener noreferrer" size="xs" c="dark.3">
+            Read source article
+          </Anchor>
+        </Group>
+      )}
 
-      <Text size="xs" c="dark.2" ta="center" mt="sm">
-        {answered ? 'Swipe right or tap Next' : 'Tap an option to select'}
-      </Text>
+      {!isLast && (
+        <>
+          <Box mt="xl">
+            <Button
+              fullWidth
+              size="md"
+              variant={answered ? 'filled' : 'light'}
+              color="violet"
+              disabled={!answered}
+              onClick={() => { if (answered) onNext(); }}
+              rightSection={
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M5 12h14" /><path d="m12 5 7 7-7 7" />
+                </svg>
+              }
+            >
+              {answered ? 'Next Question' : 'Select an answer'}
+            </Button>
+          </Box>
+
+          <Text size="xs" c="dark.2" ta="center" mt="sm">
+            {answered ? 'Swipe right or tap Next' : 'Tap an option to select'}
+          </Text>
+        </>
+      )}
     </Paper>
   );
 }
@@ -323,12 +338,15 @@ function CardStack({
 function GeneratedQuizContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { data: session } = useSession();
   const category = searchParams.get('category');
   const date = searchParams.get('date');
-  const { state, actions, allAnswered } = useGeneratedQuiz(category, date);
+  const sessionId = searchParams.get('sessionId');
+  const { state, actions, allAnswered } = useGeneratedQuiz(category, date, sessionId);
   const [currentIdx, setCurrentIdx] = useState(0);
   const [showExitConfirm, setShowExitConfirm] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [pausedSessionId, setPausedSessionId] = useState<string | null>(null);
 
   const answeredCount = Object.keys(state.selected).length;
   const totalQuestions = state.questions.length;
@@ -355,6 +373,18 @@ function GeneratedQuizContent() {
       setSelectedCategory(categorySlugs[0]);
     }
   }, [categorySlugs, selectedCategory]);
+
+  useEffect(() => {
+    if (sessionId && !pausedSessionId) {
+      setPausedSessionId(sessionId);
+    }
+  }, [sessionId, pausedSessionId]);
+
+  useEffect(() => {
+    if (state.restoredIndex !== null && currentIdx === 0) {
+      setCurrentIdx(state.restoredIndex);
+    }
+  }, [state.restoredIndex]);
 
   useEffect(() => {
     const hasPending = (() => {
@@ -441,16 +471,6 @@ function GeneratedQuizContent() {
         <>
           <Paper withBorder p="lg" radius="lg" mb="lg">
             <Group>
-              <ActionIcon variant="subtle" color="dark.2" size="lg" onClick={() => {
-                if (answeredCount > 0 && !state.submitted) setShowExitConfirm(true);
-                else router.replace('/');
-              }}
-                aria-label="Back to home"
-              >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M19 12H5" /><path d="m12 19-7-7 7-7" />
-                </svg>
-              </ActionIcon>
               <Box flex={1}>
                 <Title order={3}>Quiz</Title>
                 <Text size="sm" c="dark.2">{totalQuestions} questions</Text>
@@ -458,6 +478,45 @@ function GeneratedQuizContent() {
               <Badge size="lg" variant="light" color="violet">
                 {answeredCount}/{totalQuestions}
               </Badge>
+              {session?.user && (
+                <Button
+                  variant="subtle"
+                  color="yellow"
+                  size="sm"
+                  onClick={async () => {
+                    const payload = {
+                      quizType: "generated" as const,
+                      currentIndex: currentIdx,
+                      selectedAnswers: state.selected as Record<string, number>,
+                      questions: state.questions,
+                      timeRemaining: undefined,
+                    };
+                    if (pausedSessionId) {
+                      await api.quizSession.update(pausedSessionId, payload);
+                    } else {
+                      const res = await api.quizSession.pause(payload);
+                      setPausedSessionId(res.id);
+                    }
+                    router.replace('/sessions');
+                  }}
+                >
+                  Pause
+                </Button>
+              )}
+              <Button
+                variant="subtle"
+                color="red"
+                size="sm"
+                onClick={() => {
+                  if (answeredCount > 0 && !state.submitted) setShowExitConfirm(true);
+                  else {
+                    if (pausedSessionId) api.quizSession.remove(pausedSessionId).catch(() => {});
+                    router.replace('/');
+                  }
+                }}
+              >
+                End Game
+              </Button>
             </Group>
           </Paper>
 
@@ -528,11 +587,16 @@ function GeneratedQuizContent() {
           <Button
             flex={1}
             size="lg"
-            onClick={actions.submit}
+            onClick={async () => {
+              if (pausedSessionId) {
+                api.quizSession.remove(pausedSessionId).catch(() => {});
+              }
+              await actions.submit();
+            }}
             disabled={state.submitting || answeredCount === 0}
             loading={state.submitting}
             variant={allAnswered ? 'gradient' : 'outline'}
-          color="violet"
+            color="violet"
             gradient={allAnswered ? { from: 'violet', to: 'violet.6', deg: 45 } : undefined}
             rightSection={
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -569,7 +633,11 @@ function GeneratedQuizContent() {
           <Button variant="light" onClick={() => setShowExitConfirm(false)}>
             Stay
           </Button>
-          <Button color="red" onClick={() => { setShowExitConfirm(false); router.replace('/'); }}>
+          <Button color="red" onClick={() => {
+            setShowExitConfirm(false);
+            if (pausedSessionId) api.quizSession.remove(pausedSessionId).catch(() => {});
+            router.replace('/');
+          }}>
             Leave Quiz
           </Button>
         </Group>

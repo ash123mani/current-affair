@@ -16,6 +16,8 @@ export interface QuestionResponse {
   options: string[];
   correctIndex: number;
   explanation: string | null;
+  source: string | null;
+  articleUrl: string | null;
   date: string;
   category: {
     name: string;
@@ -76,13 +78,15 @@ export interface AttemptDetailResponse {
     questionId: string;
     selectedIndex: number;
     isCorrect: boolean;
-    question: {
-      id: string;
-      text: string;
-      options: string[];
-      correctIndex: number;
-      explanation: string | null;
-    };
+      question: {
+        id: string;
+        text: string;
+        options: string[];
+        correctIndex: number;
+        explanation: string | null;
+        source: string | null;
+        articleUrl: string | null;
+      };
   }[];
 }
 

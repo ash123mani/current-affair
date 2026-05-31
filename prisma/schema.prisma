@@ -4,7 +4,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
 }
 
 model User {
@@ -20,6 +20,7 @@ model User {
   accounts      Account[]
   sessions      Session[]
   attempts      QuizAttempt[]
+  quizSessions  QuizSession[]
 }
 
 model Account {
@@ -76,6 +77,7 @@ model Question {
   correctIndex Int
   explanation  String?
   source       String?
+  articleUrl   String?
   status       String        @default("published")
   createdAt    DateTime      @default(now())
   category     Category      @relation(fields: [categoryId], references: [id], onDelete: Cascade)
@@ -97,6 +99,23 @@ model QuizAttempt {
   answers     Answer[]
 
   @@unique([userId, categoryId, date])
+}
+
+model QuizSession {
+  id              String   @id @default(cuid())
+  userId          String
+  quizType        String   // "traditional" or "generated"
+  categoryId      String?
+  categorySlug    String?
+  date            String?
+  currentIndex    Int      @default(0)
+  selectedAnswers String   // JSON: Record<string, number> or Record<number, number>
+  questions       String   // JSON: serialized questions array
+  timeRemaining   Int?
+  status          String   @default("paused") // "paused", "completed", "abandoned"
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Article {

@@ -1,7 +1,6 @@
 "use client";
 
 import { useReducer, useCallback, useEffect, useMemo } from "react";
-import { useRouter } from "next/navigation";
 import { loadQuestions, submitQuiz } from "@/lib/actions/quiz";
 import type { QuizAction } from "@/lib/actions/quiz";
 import type { QuestionResponse } from "@/types/api";
@@ -11,7 +10,6 @@ type State = {
   loading: boolean;
   submitting: boolean;
   error: string | null;
-  unauthorized: boolean;
   result: {
     score: number;
     total: number;
@@ -24,7 +22,6 @@ const INITIAL: State = {
   loading: true,
   submitting: false,
   error: null,
-  unauthorized: false,
   result: null,
 };
 
@@ -41,9 +38,6 @@ function reducer(state: State, action: QuizAction): State {
 
     case "QUESTIONS_RESET":
       return { ...INITIAL, loading: false };
-
-    case "UNAUTHORIZED":
-      return { ...state, loading: false, unauthorized: true };
 
     case "SUBMIT_LOADING":
       return { ...state, submitting: true, error: null };
@@ -64,7 +58,6 @@ function reducer(state: State, action: QuizAction): State {
 }
 
 export function useQuiz(category: string, date?: string) {
-  const router = useRouter();
   const [state, dispatch] = useReducer(reducer, INITIAL);
 
   useEffect(() => {
@@ -73,17 +66,11 @@ export function useQuiz(category: string, date?: string) {
     }
   }, [category, date]);
 
-  useEffect(() => {
-    if (state.unauthorized) {
-      router.push(`/auth/login?callbackUrl=/quiz/${category}`);
-    }
-  }, [state.unauthorized, category, router]);
-
   const submit = useCallback(
     (date: string, answers: { questionId: string; selectedIndex: number }[], retake?: boolean) => {
-      submitQuiz(category, date, answers, dispatch, retake);
+      submitQuiz(category, date, answers, dispatch, retake, state.questions);
     },
-    [category]
+    [category, state.questions]
   );
 
   const retake = useCallback(() => {

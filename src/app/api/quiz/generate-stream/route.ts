@@ -1,4 +1,3 @@
-import { auth } from "@/lib/auth";
 import { llmService } from "@/lib/services/generator/llm.service";
 import { AppError } from "@/lib/errors";
 import { today } from "@/lib/date";
@@ -12,14 +11,6 @@ function sse(data: unknown) {
 }
 
 export async function POST(request: NextRequest) {
-  const session = await auth();
-  if (!session?.user?.id) {
-    return new Response(sse({ error: "Unauthorized" }), {
-      status: 401,
-      headers: { "Content-Type": "text/event-stream" },
-    });
-  }
-
   const body = await request.json().catch(() => ({}));
   let { articles, category, date } = body;
 
@@ -40,6 +31,7 @@ export async function POST(request: NextRequest) {
     source: String(a.source ?? "").slice(0, 100),
     content: a.content ? String(a.content).slice(0, 800) : undefined,
     url: a.url ? String(a.url) : undefined,
+    categorySlug: a.categorySlug ? String(a.categorySlug) : undefined,
   }));
 
   const quizDate = typeof date === "string" ? date : today();
