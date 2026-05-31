@@ -4,6 +4,9 @@ import { PrismaPg } from "@prisma/adapter-pg";
 const globalForPrisma = globalThis as unknown as { prisma: PrismaClient };
 
 function createPrismaClient() {
+  if (!process.env.DATABASE_URL) {
+    console.error("DATABASE_URL is not set");
+  }
   const adapter = new PrismaPg(process.env.DATABASE_URL!);
   return new PrismaClient({ adapter });
 }
