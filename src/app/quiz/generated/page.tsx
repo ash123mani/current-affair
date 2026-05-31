@@ -343,10 +343,12 @@ function GeneratedQuizContent() {
   const date = searchParams.get('date');
   const sessionId = searchParams.get('sessionId');
   const { state, actions, allAnswered } = useGeneratedQuiz(category, date, sessionId);
-  const [currentIdx, setCurrentIdx] = useState(0);
+  const [perCategoryIdx, setPerCategoryIdx] = useState<Record<string, number>>({});
   const [showExitConfirm, setShowExitConfirm] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [pausedSessionId, setPausedSessionId] = useState<string | null>(null);
+
+  const effectiveIdx = selectedCategory ? (perCategoryIdx[selectedCategory] ?? 0) : 0;
 
   const answeredCount = Object.keys(state.selected).length;
   const totalQuestions = state.questions.length;
@@ -381,10 +383,14 @@ function GeneratedQuizContent() {
   }, [sessionId, pausedSessionId]);
 
   useEffect(() => {
-    if (state.restoredIndex !== null && currentIdx === 0) {
-      setCurrentIdx(state.restoredIndex);
+    const idx = state.restoredIndex;
+    if (idx !== null) {
+      const target = selectedCategory ?? categorySlugs[0];
+      if (target) {
+        setPerCategoryIdx((prev) => ({ ...prev, [target]: idx }));
+      }
     }
-  }, [state.restoredIndex]);
+  }, [state.restoredIndex, selectedCategory, categorySlugs]);
 
   useEffect(() => {
     const hasPending = (() => {
@@ -418,12 +424,15 @@ function GeneratedQuizContent() {
   }, []);
 
   const advanceToNext = useCallback(() => {
-    if (currentIdx < filteredQuestions.length - 1) {
+    if (effectiveIdx < filteredQuestions.length - 1) {
       setTimeout(() => {
-        setCurrentIdx((i) => i + 1);
+        setPerCategoryIdx((prev) => {
+          const key = selectedCategory ?? '';
+          return { ...prev, [key]: (prev[key] ?? 0) + 1 };
+        });
       }, 200);
     }
-  }, [currentIdx, filteredQuestions.length]);
+  }, [effectiveIdx, filteredQuestions.length, selectedCategory]);
 
   const handleSelect = useCallback(
     (qIdx: number, optIdx: number) => {
@@ -433,8 +442,26 @@ function GeneratedQuizContent() {
   );
 
   const handleDotJump = useCallback((idx: number) => {
-    setCurrentIdx(idx);
-  }, []);
+    setPerCategoryIdx((prev) => {
+      const key = selectedCategory ?? '';
+      return { ...prev, [key]: idx };
+    });
+  }, [selectedCategory]);
+
+  const answeredByCategory = useMemo(() => {
+    const result: Record<string, { answered: number; total: number }> = {};
+    let globalIdx = 0;
+    for (const slug of categorySlugs) {
+      const questions = questionsByCategory[slug];
+      let answered = 0;
+      for (const _ of questions) {
+        if (state.selected[globalIdx] !== undefined) answered++;
+        globalIdx++;
+      }
+      result[slug] = { answered, total: questions.length };
+    }
+    return result;
+  }, [categorySlugs, questionsByCategory, state.selected]);
 
   const globalQuestionIndex = useMemo(() => {
     if (!selectedCategory || !questionsByCategory[selectedCategory]) return 0;
@@ -466,10 +493,11 @@ function GeneratedQuizContent() {
   }
 
   return (
-    <Container size="sm" py="xl">
-      {totalQuestions > 0 && !state.loading && (
-        <>
-          <Paper withBorder p="lg" radius="lg" mb="lg">
+    <>
+      <Container size="sm" py="xl" pb={100}>
+        {totalQuestions > 0 && !state.loading && (
+          <>
+            <Paper withBorder p="lg" radius="lg" mb="lg">
             <Group>
               <Box flex={1}>
                 <Title order={3}>Quiz</Title>
@@ -486,7 +514,7 @@ function GeneratedQuizContent() {
                   onClick={async () => {
                     const payload = {
                       quizType: "generated" as const,
-                      currentIndex: currentIdx,
+                      currentIndex: effectiveIdx,
                       selectedAnswers: state.selected as Record<string, number>,
                       questions: state.questions,
                       timeRemaining: undefined,
@@ -526,6 +554,8 @@ function GeneratedQuizContent() {
                 {categorySlugs.map((slug) => {
                   const meta = CATEGORY_MAP[slug] ?? { name: "General", color: "#7C3AED" };
                   const isActive = selectedCategory === slug;
+                  const catInfo = answeredByCategory[slug] ?? { answered: 0, total: 0 };
+                  const allDone = catInfo.answered === catInfo.total && catInfo.total > 0;
                   return (
                     <Badge
                       key={slug}
@@ -539,9 +569,23 @@ function GeneratedQuizContent() {
                         cursor: "pointer",
                         transition: "all 0.15s ease",
                       }}
-                      onClick={() => { setSelectedCategory(slug); setCurrentIdx(0); }}
+                      onClick={() => { setSelectedCategory(slug); }}
+                      leftSection={allDone ? (
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill={isActive ? "white" : "#22c55e"} stroke="none">
+                          <path d="M20 6L9 17l-5-5" strokeWidth="3" stroke={isActive ? "white" : "#22c55e"} fill="none" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                      ) : (
+                        <Box
+                          style={{
+                            width: 6,
+                            height: 6,
+                            borderRadius: '50%',
+                            background: catInfo.answered > 0 ? meta.color : (isActive ? 'rgba(255,255,255,0.5)' : `${meta.color}40`),
+                          }}
+                        />
+                      )}
                     >
-                      {meta.name} ({questionsByCategory[slug].length})
+                      {meta.name} {catInfo.answered}/{catInfo.total}
                     </Badge>
                   );
                 })}
@@ -552,7 +596,7 @@ function GeneratedQuizContent() {
           <Group justify="space-between" align="center" mb="md">
             <QuizProgressDots
               total={filteredQuestions.length}
-              currentIndex={currentIdx}
+              currentIndex={effectiveIdx}
               answered={Object.fromEntries(
                 Object.entries(state.selected).map(([k, v]) => [Number(k) - globalQuestionIndex, v])
                   .filter(([k]) => k >= 0 && k < filteredQuestions.length)
@@ -573,44 +617,13 @@ function GeneratedQuizContent() {
           questions={filteredQuestions}
           selected={state.selected}
           onSelect={handleSelect}
-          currentIdx={currentIdx}
+          currentIdx={effectiveIdx}
           onAdvance={advanceToNext}
         />
       )}
 
       {state.streaming && totalQuestions > 0 && (
         <StreamingIndicator />
-      )}
-
-      {totalQuestions > 0 && !state.loading && (
-        <Group mt="lg">
-          <Button
-            flex={1}
-            size="lg"
-            onClick={async () => {
-              if (pausedSessionId) {
-                api.quizSession.remove(pausedSessionId).catch(() => {});
-              }
-              await actions.submit();
-            }}
-            disabled={state.submitting || answeredCount === 0}
-            loading={state.submitting}
-            variant={allAnswered ? 'gradient' : 'outline'}
-            color="violet"
-            gradient={allAnswered ? { from: 'violet', to: 'violet.6', deg: 45 } : undefined}
-            rightSection={
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" />
-              </svg>
-            }
-          >
-            {state.submitting
-              ? 'Submitting...'
-              : allAnswered
-                ? `Submit Quiz (${answeredCount}/${totalQuestions})`
-                : `End Quiz (${answeredCount}/${totalQuestions})`}
-          </Button>
-        </Group>
       )}
 
       {state.error && totalQuestions > 0 && (
@@ -643,6 +656,56 @@ function GeneratedQuizContent() {
         </Group>
       </Modal>
     </Container>
+
+    {totalQuestions > 0 && !state.loading && !state.submitted && (
+      <Box
+        style={{
+          position: 'fixed',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          zIndex: 100,
+          background: 'var(--mantine-color-body)',
+          borderTop: '1px solid var(--mantine-color-dark-5)',
+          padding: 'var(--mantine-spacing-sm) var(--mantine-spacing-md)',
+        }}
+      >
+        <Container size="sm">
+          <Group>
+            <Text size="sm" c="dark.2">
+              {answeredCount}/{totalQuestions}
+            </Text>
+            <Button
+              flex={1}
+              size="md"
+              onClick={async () => {
+                if (pausedSessionId) {
+                  api.quizSession.remove(pausedSessionId).catch(() => {});
+                }
+                await actions.submit();
+              }}
+              disabled={state.submitting || answeredCount === 0}
+              loading={state.submitting}
+              variant={allAnswered ? 'gradient' : 'outline'}
+              color="violet"
+              gradient={allAnswered ? { from: 'violet', to: 'violet.6', deg: 45 } : undefined}
+              rightSection={
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" />
+                </svg>
+              }
+            >
+              {state.submitting
+                ? 'Submitting...'
+                : allAnswered
+                  ? `Submit Quiz (${answeredCount}/${totalQuestions})`
+                  : `End Quiz (${answeredCount}/${totalQuestions})`}
+            </Button>
+          </Group>
+        </Container>
+      </Box>
+    )}
+  </>
   );
 }
 
