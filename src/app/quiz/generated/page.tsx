@@ -74,6 +74,8 @@ function SwipeableCard({
   questionNum,
   onNext,
   isLast,
+  hasNextSection,
+  nextSectionName,
 }: {
   question: QuestionData;
   selectedOption: number | undefined;
@@ -81,6 +83,8 @@ function SwipeableCard({
   questionNum: number;
   onNext: () => void;
   isLast: boolean;
+  hasNextSection?: boolean;
+  nextSectionName?: string;
 }) {
   const cardRef = useRef<HTMLDivElement>(null);
   const dragStart = useRef<{ x: number; y: number } | null>(null);
@@ -232,7 +236,7 @@ function SwipeableCard({
         </Group>
       )}
 
-      {!isLast && (
+      {(!isLast || hasNextSection) && (
         <>
           <Box mt="xl">
             <Button
@@ -243,17 +247,31 @@ function SwipeableCard({
               disabled={!answered}
               onClick={() => { if (answered) onNext(); }}
               rightSection={
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M5 12h14" /><path d="m12 5 7 7-7 7" />
-                </svg>
+                !hasNextSection ? (
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M5 12h14" /><path d="m12 5 7 7-7 7" />
+                  </svg>
+                ) : (
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M5 12h14" /><path d="m12 5 7 7-7 7" />
+                  </svg>
+                )
               }
             >
-              {answered ? 'Next Question' : 'Select an answer'}
+              {answered
+                ? hasNextSection
+                  ? `Next Section: ${nextSectionName ?? ''}`
+                  : 'Next Question'
+                : 'Select an answer'}
             </Button>
           </Box>
 
           <Text size="xs" c="dark.2" ta="center" mt="sm">
-            {answered ? 'Swipe right or tap Next' : 'Tap an option to select'}
+            {answered
+              ? hasNextSection
+                ? 'Swipe to go to next section'
+                : 'Swipe right or tap Next'
+              : 'Tap an option to select'}
           </Text>
         </>
       )}
@@ -269,12 +287,18 @@ function CardStack({
   onSelect,
   currentIdx,
   onAdvance,
+  globalOffset = 0,
+  hasNextSection,
+  nextSectionName,
 }: {
   questions: QuestionData[];
   selected: Record<number, number>;
   onSelect: (qIdx: number, optIdx: number) => void;
   currentIdx: number;
   onAdvance: () => void;
+  globalOffset?: number;
+  hasNextSection?: boolean;
+  nextSectionName?: string;
 }) {
   const stackCards = questions.slice(currentIdx, currentIdx + 3);
   const isLast = currentIdx >= questions.length - 1;
@@ -282,12 +306,13 @@ function CardStack({
   return (
     <Box className="card-stack-container" mb="xl">
       {stackCards.map((qq, i) => {
-        const actualIdx = currentIdx + i;
+        const localIdx = currentIdx + i;
+        const globalIdx = globalOffset + localIdx;
         const isCurrent = i === 0;
 
         return (
           <Box
-            key={actualIdx}
+            key={globalIdx}
             className="card-stack-item"
             style={{
               zIndex: stackCards.length - i,
@@ -303,19 +328,21 @@ function CardStack({
             {isCurrent ? (
               <SwipeableCard
                 question={qq}
-                selectedOption={selected[actualIdx]}
-                onSelect={(optIdx) => onSelect(actualIdx, optIdx)}
-                questionNum={actualIdx}
+                selectedOption={selected[globalIdx]}
+                onSelect={(optIdx) => onSelect(globalIdx, optIdx)}
+                questionNum={localIdx}
                 onNext={onAdvance}
                 isLast={isLast}
+                hasNextSection={hasNextSection}
+                nextSectionName={nextSectionName}
               />
             ) : (
               <Box p="lg">
                 <Group mb="md">
                   <Badge size="sm" variant="light" color="dark.4" radius="xl">
-                    Q{actualIdx + 1}
+                    Q{localIdx + 1}
                   </Badge>
-                  {selected[actualIdx] !== undefined && (
+                  {selected[globalIdx] !== undefined && (
                     <Badge size="sm" variant="light" color="green" radius="xl">
                       Answered
                     </Badge>
@@ -423,6 +450,13 @@ function GeneratedQuizContent() {
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
+  const nextCategorySlug = useMemo(() => {
+    if (!selectedCategory) return null;
+    const idx = categorySlugs.indexOf(selectedCategory);
+    if (idx >= 0 && idx < categorySlugs.length - 1) return categorySlugs[idx + 1];
+    return null;
+  }, [selectedCategory, categorySlugs]);
+
   const advanceToNext = useCallback(() => {
     if (effectiveIdx < filteredQuestions.length - 1) {
       setTimeout(() => {
@@ -431,8 +465,10 @@ function GeneratedQuizContent() {
           return { ...prev, [key]: (prev[key] ?? 0) + 1 };
         });
       }, 200);
+    } else if (nextCategorySlug) {
+      setSelectedCategory(nextCategorySlug);
     }
-  }, [effectiveIdx, filteredQuestions.length, selectedCategory]);
+  }, [effectiveIdx, filteredQuestions.length, selectedCategory, nextCategorySlug]);
 
   const handleSelect = useCallback(
     (qIdx: number, optIdx: number) => {
@@ -619,6 +655,9 @@ function GeneratedQuizContent() {
           onSelect={handleSelect}
           currentIdx={effectiveIdx}
           onAdvance={advanceToNext}
+          globalOffset={globalQuestionIndex}
+          hasNextSection={!!nextCategorySlug}
+          nextSectionName={nextCategorySlug ? (CATEGORY_MAP[nextCategorySlug]?.name ?? nextCategorySlug) : undefined}
         />
       )}
 
