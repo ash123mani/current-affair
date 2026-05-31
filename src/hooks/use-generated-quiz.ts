@@ -327,7 +327,7 @@ export function useGeneratedQuiz(category: string | null, date: string | null, s
           questionId: ids[Number(idx)],
           selectedIndex,
         }));
-        const result: QuizResult = await api.quiz.attempt(effectiveCategory, date, answers);
+        const result: QuizResult = await api.quiz.attempt(effectiveCategory, date, answers, true);
         dispatch({
           type: "SUBMIT_SUCCESS",
           score: result.answers.filter((a) => a.isCorrect).length,
